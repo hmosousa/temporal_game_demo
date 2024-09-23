@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#context {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+
+#context .entity {
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+#context .entity[class^="e"] {
+    background-color: #ffcccb; /* Light red for events */
+}
+
+#context .entity[class^="t"] {
+    background-color: #90ee90; /* Light green for temporal expressions */
+}
+
+#game-board {
+    display: grid;
+    gap: 1px;
+    background-color: #ccc;
+    border: 1px solid #ccc;
+}
+
+.board-cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.board-header {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+#relation-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.relation-button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: move;
+}
+
+#reset-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#reset-button:hover {
+    background-color: #e0e0e0;
+}

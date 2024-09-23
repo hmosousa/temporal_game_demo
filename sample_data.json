@@ -1,0 +1,116 @@
+{
+  "context": "Documents Creation Time: <t0>11/02/89</t0>\nUpjohn Co. <ei421>said</ei421> it will <ei422>offer</ei422> an early retirement package to as many as 1,100 employees in a cost-cutting <ei424>move</ei424> <ei425>expected</ei425> to <ei426>result</ei426> in a <t79>fourth-quarter</t79> <ei427>charge</ei427>.",
+  "timeline": [
+    {
+      "relation": "<",
+      "source": "start ei427",
+      "target": "end t79"
+    },
+    {
+      "relation": "<",
+      "source": "start ei422",
+      "target": "end ei424"
+    },
+    {
+      "relation": ">",
+      "source": "start ei427",
+      "target": "start t79"
+    },
+    {
+      "relation": ">",
+      "source": "end ei422",
+      "target": "start ei424"
+    },
+    {
+      "relation": "<",
+      "source": "end ei421",
+      "target": "start t0"
+    },
+    {
+      "relation": ">",
+      "source": "start ei425",
+      "target": "start t0"
+    },
+    {
+      "relation": ">",
+      "source": "end ei427",
+      "target": "start t79"
+    },
+    {
+      "relation": "<",
+      "source": "start ei421",
+      "target": "start ei425"
+    },
+    {
+      "relation": ">",
+      "source": "end ei425",
+      "target": "start t0"
+    },
+    {
+      "relation": "<",
+      "source": "end ei421",
+      "target": "end t0"
+    },
+    {
+      "relation": "<",
+      "source": "end ei427",
+      "target": "end t79"
+    },
+    {
+      "relation": "<",
+      "source": "start ei425",
+      "target": "end t0"
+    },
+    {
+      "relation": "<",
+      "source": "end ei421",
+      "target": "start ei425"
+    },
+    {
+      "relation": "<",
+      "source": "start ei421",
+      "target": "end t0"
+    },
+    {
+      "relation": "<",
+      "source": "start ei421",
+      "target": "start t0"
+    },
+    {
+      "relation": ">",
+      "source": "start ei422",
+      "target": "start ei424"
+    },
+    {
+      "relation": "<",
+      "source": "end ei422",
+      "target": "end ei424"
+    },
+    {
+      "relation": "<",
+      "source": "start ei421",
+      "target": "end ei425"
+    },
+    {
+      "relation": "<",
+      "source": "end ei421",
+      "target": "end ei425"
+    },
+    {
+      "relation": "<",
+      "source": "end ei425",
+      "target": "end t0"
+    }
+  ],
+  "entities": [
+    "ei424",
+    "ei427",
+    "ei425",
+    "ei421",
+    "ei422",
+    "ei426",
+    "t79",
+    "t0"
+  ],
+  "id": "wsj_0184_0"
+}
