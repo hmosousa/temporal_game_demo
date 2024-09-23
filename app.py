@@ -1,35 +1,31 @@
 import json
-
 from flask import Flask, render_template
-
 from src.utils import highlight_entities
+import re
 
 app = Flask(__name__)
-
 
 def order_entities_by_appearance(context, entities):
     entity_positions = {}
     for entity in entities:
-        position = context.find(f"<{entity}>")
-        print(entity, position)
-        entity_positions[entity] = position
+        match = re.search(f'<{entity}>(.*?)</{entity}>', context)
+        if match:
+            entity_positions[entity] = match.start()
+    
+    return sorted(entities, key=lambda e: entity_positions.get(e, float('inf')))
 
-    entities = sorted(entities, key=lambda e: entity_positions.get(e, float("inf")))
-    return entities
-
-
-@app.route("/")
+@app.route('/')
 def index():
-    with open("sample_data.json", "r") as f:
+    with open('sample_data.json', 'r') as f:
         data = json.load(f)
+    data['context'] = highlight_entities(data['context'])
+    
+    # Order entities by appearance
+    data['ordered_entities'] = order_entities_by_appearance(data['context'], data['entities'])
+    
+    # log the data with flask
+    app.logger.info(data)
+    return render_template('index.html', data=data)
 
-    data["ordered_entities"] = order_entities_by_appearance(
-        data["context"], data["entities"]
-    )
-    data["context"] = highlight_entities(data["context"])
-    # app.logger.info(json.dumps(data, indent=2))
-    return render_template("index.html", data=data)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

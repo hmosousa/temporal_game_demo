@@ -7,15 +7,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <pre id="context">{{ data.context | safe }}</pre>
+    <h1>Temporal Game</h1>
+    <div id="context">{{ data.context | safe }}</div>
     <div id="game-board"></div>
     <div id="relation-buttons">
-        <div class="relation-button" draggable="true" data-relation="<">&lt;</div>
+        <div class="relation-button" draggable="true" data-relation=">">></div>
+        <div class="relation-button" draggable="true" data-relation="<"><</div>
         <div class="relation-button" draggable="true" data-relation="=">=</div>
-        <div class="relation-button" draggable="true" data-relation=">">&gt;</div>
         <div class="relation-button" draggable="true" data-relation="-">-</div>
     </div>
-    <button id="reset-button">Reset Board</button>
+    <button id="reset-button">Reset</button>
+    
+    <div id="guidelines">
+        <h2>Guidelines:</h2>
+        <ul>
+            <li>Drag and drop the ">", "<", "=", or "-" symbols to fill the cells.</li>
+            <li>Double-click a filled cell to empty it.</li>
+            <li>Use ">" if the row entity happens after the column entity.</li>
+            <li>Use "<" if the row entity happens before the column entity.</li>
+            <li>Use "=" if the row entity and column entity happen at the same time.</li>
+            <li>Use "-" if the entities are not related.</li>
+            <li>Click the "Reset" button to clear all cells.</li>
+        </ul>
+    </div>
+
     <script>
         const gameData = {{ data | tojson | safe }};
     </script>

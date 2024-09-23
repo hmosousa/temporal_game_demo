@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gameBoard = document.getElementById('game-board');
-    const entities = gameData.ordered_entities;  // Use the ordered entities
+    const entities = gameData.ordered_entities;
     const resetButton = document.getElementById('reset-button');
 
     // Extract entity text from context
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cell = createCell('', 'board-cell');
                 cell.addEventListener('dragover', allowDrop);
                 cell.addEventListener('drop', drop);
+                cell.addEventListener('dblclick', emptyCell);
                 gameBoard.appendChild(cell);
             }
         });
@@ -65,7 +66,7 @@ function drag(event) {
 function drop(event) {
     event.preventDefault();
     const relation = event.dataTransfer.getData('text');
-    if (event.target.classList.contains('board-cell') && event.target.textContent !== '-') {
+    if (event.target.classList.contains('board-cell')) {
         event.target.textContent = relation;
     }
 }
@@ -77,4 +78,11 @@ function resetBoard() {
             cell.textContent = '';
         }
     });
+}
+
+// New function to empty a cell on double-click
+function emptyCell(event) {
+    if (event.target.classList.contains('board-cell') && event.target.textContent !== '-') {
+        event.target.textContent = '';
+    }
 }
