@@ -1,9 +1,9 @@
 import json
 import re
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 
-from src.utils import highlight_entities
+from src.utils import highlight_entities, build_entities_dict
 
 app = Flask(__name__)
 
@@ -18,18 +18,29 @@ def order_entities_by_appearance(context, entities):
     return sorted(entities, key=lambda e: entity_positions.get(e, float("inf")))
 
 
-@app.route("/")
-def index():
-    with open("sample_data.json", "r") as f:
-        data = json.load(f)
-
+def _build_data(data):
+    data["eid2name"] = build_entities_dict(data["context"])
     data["ordered_entities"] = order_entities_by_appearance(
         data["context"], data["entities"]
     )
     data["context"] = highlight_entities(data["context"])
+    return data
 
-    app.logger.info(json.dumps(data, indent=2))
+
+@app.route("/")
+def index():
+    with open("sample_data.json", "r") as f:
+        data = json.load(f)
+    data = _build_data(data)
     return render_template("index.html", data=data)
+
+
+@app.route("/api/data", methods=["GET"])
+def get_context():
+    with open("sample_data.json", "r") as f:
+        data = json.load(f)
+    data = _build_data(data)
+    return jsonify(data)
 
 
 if __name__ == "__main__":
