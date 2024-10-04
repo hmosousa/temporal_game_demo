@@ -13,27 +13,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Create game board
+    gameBoard.style.display = 'grid';
     gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length}, 1fr)`;
-    gameBoard.style.gridTemplateRows = `auto repeat(${entities.length}, 1fr)`;
 
     // Add header row
-    gameBoard.appendChild(createCell('', 'board-header'));
+    gameBoard.appendChild(createCell('', 'board-header corner-header'));
     entities.forEach(entity => {
-        gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header'));
+        gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header column-header'));
     });
 
     // Add rows
-    entities.forEach(rowEntity => {
-        gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header'));
-        entities.forEach(colEntity => {
-            if (rowEntity === colEntity) {
-                gameBoard.appendChild(createCell('-', 'board-cell'));
+    entities.forEach((rowEntity, rowIndex) => {
+        // Add row header
+        gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header row-header'));
+
+        // Add cells
+        entities.forEach((colEntity, colIndex) => {
+            if (colIndex <= rowIndex) {
+                if (rowEntity === colEntity) {
+                    gameBoard.appendChild(createCell('-', 'board-cell diagonal-cell'));
+                } else {
+                    const cell = createCell('', 'board-cell');
+                    cell.addEventListener('dragover', allowDrop);
+                    cell.addEventListener('drop', drop);
+                    cell.addEventListener('dblclick', emptyCell);
+                    gameBoard.appendChild(cell);
+                }
             } else {
-                const cell = createCell('', 'board-cell');
-                cell.addEventListener('dragover', allowDrop);
-                cell.addEventListener('drop', drop);
-                cell.addEventListener('dblclick', emptyCell);
-                gameBoard.appendChild(cell);
+                // Add empty cells for upper triangle
+                gameBoard.appendChild(createCell('', 'empty-cell'));
             }
         });
     });
@@ -66,23 +74,20 @@ function drag(event) {
 function drop(event) {
     event.preventDefault();
     const relation = event.dataTransfer.getData('text');
-    if (event.target.classList.contains('board-cell')) {
+    if (event.target.classList.contains('board-cell') && !event.target.classList.contains('diagonal-cell')) {
         event.target.textContent = relation;
     }
 }
 
 function resetBoard() {
-    const cells = document.querySelectorAll('.board-cell');
+    const cells = document.querySelectorAll('.board-cell:not(.diagonal-cell)');
     cells.forEach(cell => {
-        if (cell.textContent !== '-') {
-            cell.textContent = '';
-        }
+        cell.textContent = '';
     });
 }
 
-// New function to empty a cell on double-click
 function emptyCell(event) {
-    if (event.target.classList.contains('board-cell') && event.target.textContent !== '-') {
+    if (event.target.classList.contains('board-cell') && !event.target.classList.contains('diagonal-cell')) {
         event.target.textContent = '';
     }
 }
