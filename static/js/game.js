@@ -29,18 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add cells
         entities.forEach((colEntity, colIndex) => {
-            if (colIndex <= rowIndex) {
-                if (rowEntity === colEntity) {
-                    gameBoard.appendChild(createCell('-', 'board-cell diagonal-cell'));
-                } else {
-                    const cell = createCell('', 'board-cell');
-                    cell.addEventListener('dragover', allowDrop);
-                    cell.addEventListener('drop', drop);
-                    cell.addEventListener('dblclick', emptyCell);
-                    gameBoard.appendChild(cell);
-                }
+            if (colIndex < rowIndex) {
+                const cell = createCell('', 'board-cell');
+                cell.addEventListener('dragover', allowDrop);
+                cell.addEventListener('drop', drop);
+                cell.addEventListener('dblclick', emptyCell);
+                gameBoard.appendChild(cell);
             } else {
-                // Add empty cells for upper triangle
+                // Add empty cells for diagonal and upper triangle
                 gameBoard.appendChild(createCell('', 'empty-cell'));
             }
         });
@@ -74,20 +70,20 @@ function drag(event) {
 function drop(event) {
     event.preventDefault();
     const relation = event.dataTransfer.getData('text');
-    if (event.target.classList.contains('board-cell') && !event.target.classList.contains('diagonal-cell')) {
+    if (event.target.classList.contains('board-cell')) {
         event.target.textContent = relation;
     }
 }
 
 function resetBoard() {
-    const cells = document.querySelectorAll('.board-cell:not(.diagonal-cell)');
+    const cells = document.querySelectorAll('.board-cell');
     cells.forEach(cell => {
         cell.textContent = '';
     });
 }
 
 function emptyCell(event) {
-    if (event.target.classList.contains('board-cell') && !event.target.classList.contains('diagonal-cell')) {
+    if (event.target.classList.contains('board-cell')) {
         event.target.textContent = '';
     }
 }
