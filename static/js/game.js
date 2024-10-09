@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Get DOM elements
     const gameBoard = document.getElementById('game-board');
     const entities = gameData.ordered_entities;
     const resetButton = document.getElementById('reset-button');
@@ -12,11 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
         entityTexts[entityId] = span.textContent;
     });
 
-    // Create game board
+    // Set up game board layout
     gameBoard.style.display = 'grid';
     gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length - 1}, 1fr)`;
 
-    // Add rows
+    // Add rows to the game board
     entities.slice(1).forEach((rowEntity, rowIndex) => {
         // Add row header
         gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header row-header'));
@@ -36,13 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Add footer row with column headers
-    gameBoard.appendChild(createCell('', 'empty-cell')); // Empty cell at the start of the footer row
+    // Add column headers at the bottom of the game board
+    gameBoard.appendChild(createCell('', 'empty-cell'));
     entities.slice(0, -1).forEach(entity => {
-        gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header column-header'));
+        gameBoard.appendChild(createCell(`${entityTexts[entity] || entity}`, 'board-header column-header'));
     });
 
-    // Set up reset button
+    // Set up reset button functionality
     resetButton.addEventListener('click', resetBoard);
 
     // Set up drag and drop for relation buttons
@@ -52,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Helper function to create a cell element
 function createCell(text, className) {
     const cell = document.createElement('div');
     cell.textContent = text;
@@ -59,14 +61,17 @@ function createCell(text, className) {
     return cell;
 }
 
+// Allow dropping of elements
 function allowDrop(event) {
     event.preventDefault();
 }
 
+// Handle the start of dragging a relation button
 function drag(event) {
     event.dataTransfer.setData('text', event.target.dataset.relation);
 }
 
+// Handle dropping a relation into a cell
 function drop(event) {
     event.preventDefault();
     const relation = event.dataTransfer.getData('text');
@@ -75,6 +80,7 @@ function drop(event) {
     }
 }
 
+// Reset all cells in the game board
 function resetBoard() {
     const cells = document.querySelectorAll('.board-cell');
     cells.forEach(cell => {
@@ -82,6 +88,7 @@ function resetBoard() {
     });
 }
 
+// Empty a cell when double-clicked
 function emptyCell(event) {
     event.target.classList.contains('board-cell') && (event.target.textContent = '');
 }
