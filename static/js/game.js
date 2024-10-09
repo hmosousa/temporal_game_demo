@@ -14,13 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create game board
     gameBoard.style.display = 'grid';
-    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length}, 1fr)`;
+    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length}, 1fr) auto`;
 
-    // Add header row
+    // Add empty corner cell
     gameBoard.appendChild(createCell('', 'board-header corner-header'));
-    entities.forEach(entity => {
-        gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header column-header'));
-    });
 
     // Add rows
     entities.forEach((rowEntity, rowIndex) => {
@@ -40,7 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameBoard.appendChild(createCell('', 'empty-cell'));
             }
         });
+
+        // Add empty cell at the end of each row
+        gameBoard.appendChild(createCell('', 'empty-cell'));
     });
+
+    // Add footer row with column headers
+    gameBoard.appendChild(createCell('', 'empty-cell')); // Empty cell at the start of the footer row
+    entities.forEach(entity => {
+        gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header column-header'));
+    });
+    gameBoard.appendChild(createCell('', 'empty-cell')); // Empty cell at the end of the footer row
 
     // Set up reset button
     resetButton.addEventListener('click', resetBoard);
