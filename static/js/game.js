@@ -83,7 +83,5 @@ function resetBoard() {
 }
 
 function emptyCell(event) {
-    if (event.target.classList.contains('board-cell')) {
-        event.target.textContent = '';
-    }
+    event.target.classList.contains('board-cell') && (event.target.textContent = '');
 }
