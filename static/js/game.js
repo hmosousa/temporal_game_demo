@@ -14,40 +14,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create game board
     gameBoard.style.display = 'grid';
-    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length}, 1fr) auto`;
-
-    // Add empty corner cell
-    gameBoard.appendChild(createCell('', 'board-header corner-header'));
+    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length - 1}, 1fr)`;
 
     // Add rows
-    entities.forEach((rowEntity, rowIndex) => {
+    entities.slice(1).forEach((rowEntity, rowIndex) => {
         // Add row header
         gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header row-header'));
 
         // Add cells
-        entities.forEach((colEntity, colIndex) => {
-            if (colIndex < rowIndex) {
+        entities.slice(0, -1).forEach((colEntity, colIndex) => {
+            if (colIndex <= rowIndex) {
                 const cell = createCell('', 'board-cell');
                 cell.addEventListener('dragover', allowDrop);
                 cell.addEventListener('drop', drop);
                 cell.addEventListener('dblclick', emptyCell);
                 gameBoard.appendChild(cell);
             } else {
-                // Add empty cells for diagonal and upper triangle
+                // Add empty cells for upper triangle
                 gameBoard.appendChild(createCell('', 'empty-cell'));
             }
         });
-
-        // Add empty cell at the end of each row
-        gameBoard.appendChild(createCell('', 'empty-cell'));
     });
 
     // Add footer row with column headers
     gameBoard.appendChild(createCell('', 'empty-cell')); // Empty cell at the start of the footer row
-    entities.forEach(entity => {
+    entities.slice(0, -1).forEach(entity => {
         gameBoard.appendChild(createCell(entityTexts[entity] || entity, 'board-header column-header'));
     });
-    gameBoard.appendChild(createCell('', 'empty-cell')); // Empty cell at the end of the footer row
 
     // Set up reset button
     resetButton.addEventListener('click', resetBoard);
