@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Get DOM elements
     const gameBoard = document.getElementById('game-board');
-    const entities = gameData.ordered_entities;
+    const entities = gameData.ordered_entities.flatMap(entity => [`s ${entity}`, `e ${entity}`]);
     const resetButton = document.getElementById('reset-button');
 
     // Extract entity text from context
@@ -10,20 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const entitySpans = contextElement.querySelectorAll('.entity');
     entitySpans.forEach(span => {
         const entityId = span.className.split(' ')[1];
-        entityTexts[entityId] = span.textContent;
+        entityTexts[`s ${entityId}`] = `s ${span.textContent}`;
+        entityTexts[`e ${entityId}`] = `e ${span.textContent}`;
     });
 
     // Set up game board layout
     gameBoard.style.display = 'grid';
-    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length - 1}, 1fr)`;
+    gameBoard.style.gridTemplateColumns = `auto repeat(${entities.length - 2}, 1fr)`;
 
     // Add rows to the game board
-    entities.slice(1).forEach((rowEntity, rowIndex) => {
+    entities.slice(2).forEach((rowEntity, rowIndex) => {
         // Add row header
         gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header row-header'));
 
         // Add cells
-        entities.slice(0, -1).forEach((colEntity, colIndex) => {
+        entities.slice(0, -2).forEach((colEntity, colIndex) => {
             if (colIndex <= rowIndex) {
                 const cell = createCell('', 'board-cell');
                 cell.addEventListener('dragover', allowDrop);
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add column headers at the bottom of the game board
     gameBoard.appendChild(createCell('', 'empty-cell'));
-    entities.slice(0, -1).forEach(entity => {
+    entities.slice(0, -2).forEach(entity => {
         gameBoard.appendChild(createCell(`${entityTexts[entity] || entity}`, 'board-header column-header'));
     });
 
