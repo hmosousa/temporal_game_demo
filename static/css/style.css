@@ -42,8 +42,8 @@ body {
 }
 
 .board-cell {
-    width: 40px;
-    height: 40px;
+    width: 100px;
+    height: 100px;
     background-color: white;
     display: flex;
     justify-content: center;
@@ -54,6 +54,25 @@ body {
 .board-header {
     background-color: #f0f0f0;
     font-weight: bold;
+}
+
+.column-header {
+    text-orientation: mixed;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    box-sizing: border-box;
+}
+
+.row-header {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    width: 100px;
+    padding-left: 10px;
+    box-sizing: border-box;
 }
 
 #relation-buttons {
