@@ -24,13 +24,6 @@ def _build_data(data):
         data["context"], data["entities"]
     )
     data["context"] = highlight_entities(data["context"])
-    
-    # entities = []
-    # for entity in data["ordered_entities"]:
-    #     entities.append(f"s {entity}")
-    #     entities.append(f"e {entity}")
-    # entities["ordered_entities"] = entities
-    
     return data
 
 
