@@ -23,16 +23,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add row header
         gameBoard.appendChild(createCell(entityTexts[rowEntity] || rowEntity, 'board-header row-header'));
 
+        const i = rowIndex + 1; // row index starting at 1
+        const cellsToAdd = i % 2 === 1 ? i + 1 : i; // odd rows: i+1, even rows: i
+
         // Add cells
         entities.slice(0, -2).forEach((colEntity, colIndex) => {
-            if (colIndex <= rowIndex) {
+            if (colIndex < cellsToAdd) {
                 const cell = createCell('', 'board-cell');
                 cell.addEventListener('dragover', allowDrop);
                 cell.addEventListener('drop', drop);
                 cell.addEventListener('dblclick', emptyCell);
                 gameBoard.appendChild(cell);
             } else {
-                // Add empty cells for upper triangle
                 gameBoard.appendChild(createCell('', 'empty-cell'));
             }
         });
