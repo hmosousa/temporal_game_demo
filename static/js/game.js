@@ -80,6 +80,7 @@ function drop(event) {
     const relation = event.dataTransfer.getData('text');
     if (event.target.classList.contains('board-cell')) {
         event.target.textContent = relation;
+        computeTemporalClosure(); // Add this line to compute closure after each drop
     }
 }
 
@@ -94,4 +95,93 @@ function resetBoard() {
 // Empty a cell when double-clicked
 function emptyCell(event) {
     event.target.classList.contains('board-cell') && (event.target.textContent = '');
+}
+
+// Updated function to get the index map
+function getIdxMap(nEntities) {
+    const n = nEntities - 1;
+    const maxId = Math.floor(4 * ((n * n + n) / 2));
+    let row = 0;
+    let col = 0;
+    let nItems = 2;
+    const idxMap = {};
+
+    for (let idx = 0; idx < maxId; idx++) {
+        if (col >= nItems) {
+            row++;
+            col = 0;
+
+            if (row % 2 === 0) {
+                nItems += 2;
+            }
+        }
+
+        idxMap[idx] = [row, col];
+        col++;
+    }
+
+    return idxMap;
+}
+
+// Update the getCurrentAnnotation function
+function getCurrentAnnotation() {
+    const cells = document.querySelectorAll('.board-cell');
+    const timeline = [];
+    const entities = gameData.ordered_entities;
+    const idxMap = getIdxMap(entities.length);
+    console.log(entities);
+
+    cells.forEach((cell, index) => {
+        if (cell.textContent) {
+            const [row, col] = idxMap[index];
+            console.log(row, col);
+            timeline.push({
+                relation: cell.textContent,
+                source: `${row % 2 === 0 ? 'start' : 'end'} ${entities[Math.floor((row + 2) / 2)]}`,
+                target: `${col % 2 === 0 ? 'start' : 'end'} ${entities[Math.floor((col) / 2)]}`
+            });
+        }
+    });
+
+    console.log('Current Timeline:', timeline);
+    return timeline;
+}
+
+// Add this function to send the annotation and update the board
+function computeTemporalClosure() {
+    const currentAnnotation = getCurrentAnnotation();
+
+    fetch('/api/temporal_closure', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ timeline: currentAnnotation }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            updateBoardWithClosure(data.timeline);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
+// Add this function to update the board with the computed closure
+function updateBoardWithClosure(timeline) {
+    const cells = document.querySelectorAll('.board-cell');
+    const entities = gameData.ordered_entities;
+
+    timeline.forEach(item => {
+        const sourceIndex = entities.indexOf(item.source.split(' ')[1]);
+        const targetIndex = entities.indexOf(item.target.split(' ')[1]);
+        const sourceType = item.source.split(' ')[0];
+        const targetType = item.target.split(' ')[0];
+
+        const rowIndex = (sourceIndex - 2) * 2 + (sourceType === 'end' ? 1 : 0);
+        const colIndex = targetIndex * 2 + (targetType === 'end' ? 1 : 0);
+
+        const cellIndex = rowIndex * (entities.length - 2) + colIndex;
+        cells[cellIndex].textContent = item.relation;
+    });
 }

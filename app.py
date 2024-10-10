@@ -1,9 +1,9 @@
 import json
 import re
 
-from flask import Flask, render_template, jsonify
-
+from flask import Flask, render_template, jsonify, request
 from src.utils import highlight_entities, build_entities_dict
+from src.temporal_closure import compute_temporal_closure  # You'll need to implement this function
 
 app = Flask(__name__)
 
@@ -41,6 +41,19 @@ def get_context():
         data = json.load(f)
     data = _build_data(data)
     return jsonify(data)
+
+
+@app.route("/api/temporal_closure", methods=["POST"])
+def temporal_closure():
+    data = request.json
+    timeline = data.get("timeline", [])
+    app.logger.info(f"Received timeline: {timeline}")
+    
+    # Compute the temporal closure
+    closed_timeline = compute_temporal_closure(timeline)
+    app.logger.info(f"Computed timeline: {closed_timeline}")    
+    
+    return jsonify({"timeline": closed_timeline})
 
 
 if __name__ == "__main__":
