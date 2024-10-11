@@ -103,20 +103,6 @@ body {
     cursor: move;
 }
 
-#reset-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#reset-button:hover {
-    background-color: #e0e0e0;
-}
-
 #guidelines {
     margin-top: 20px;
     padding: 10px;
@@ -135,4 +121,27 @@ body {
 
 #guidelines li {
     margin-bottom: 5px;
+}
+
+.game-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+#reset-button,
+#solve-button {
+    width: 110px;
+    height: 50px;
+    font-size: 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#reset-button:hover,
+#solve-button:hover {
+    background-color: #e0e0e0;
 }

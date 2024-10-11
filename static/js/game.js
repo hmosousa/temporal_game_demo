@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameBoard = document.getElementById('game-board');
     const entities = gameData.ordered_entities.flatMap(entity => [`s ${entity}`, `e ${entity}`]);
     const resetButton = document.getElementById('reset-button');
+    const solveButton = document.getElementById('solve-button');
 
     // Extract entity text from context
     const entityTexts = {};
@@ -49,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up reset button functionality
     resetButton.addEventListener('click', resetBoard);
 
+    // Set up solve button functionality
+    solveButton.addEventListener('click', solveBoard);
+
     // Set up drag and drop for relation buttons
     const relationButtons = document.querySelectorAll('.relation-button');
     relationButtons.forEach(button => {
@@ -80,7 +84,7 @@ function drop(event) {
     const relation = event.dataTransfer.getData('text');
     if (event.target.classList.contains('board-cell')) {
         event.target.textContent = relation;
-        computeTemporalClosure(); // Add this line to compute closure after each drop
+        computeTemporalClosure();
     }
 }
 
@@ -213,4 +217,39 @@ function invertRelation(relation) {
         '-': '-'
     };
     return inversionMap[relation] || relation;
+}
+
+// Add this function to solve the board
+function solveBoard() {
+    fetch('/api/data')
+        .then(response => response.json())
+        .then(data => {
+            const timeline = data.timeline;
+            const entities = data.ordered_entities;
+            const idxMap = getIdxMap(entities.length);
+            const cells = document.querySelectorAll('.board-cell');
+
+            timeline.forEach(item => {
+                const sourceIndex = entities.indexOf(item.source.split(' ')[1]);
+                const targetIndex = entities.indexOf(item.target.split(' ')[1]);
+                const sourceType = item.source.split(' ')[0];
+                const targetType = item.target.split(' ')[0];
+
+                let rowIndex = (sourceIndex - 1) * 2 + (sourceType === 'end' ? 1 : 0);
+                let colIndex = targetIndex * 2 + (targetType === 'end' ? 1 : 0);
+
+                let cellIndex = Object.keys(idxMap).find(key =>
+                    idxMap[key][0] === rowIndex && idxMap[key][1] === colIndex
+                );
+
+                if (cellIndex !== undefined) {
+                    cells[cellIndex].textContent = item.relation;
+                }
+            });
+
+            computeTemporalClosure(); // Compute closure after solving
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
 }
