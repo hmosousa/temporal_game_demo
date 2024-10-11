@@ -3,7 +3,7 @@ import re
 
 from flask import Flask, render_template, jsonify, request
 from src.utils import highlight_entities, build_entities_dict
-from src.temporal_closure import compute_temporal_closure  # You'll need to implement this function
+from src.temporal_closure import Timeline
 
 app = Flask(__name__)
 
@@ -46,14 +46,15 @@ def get_context():
 @app.route("/api/temporal_closure", methods=["POST"])
 def temporal_closure():
     data = request.json
-    timeline = data.get("timeline", [])
-    app.logger.info(f"Received timeline: {timeline}")
-    
-    # Compute the temporal closure
-    closed_timeline = compute_temporal_closure(timeline)
-    app.logger.info(f"Computed timeline: {closed_timeline}")    
-    
-    return jsonify({"timeline": closed_timeline})
+    relations = data.get("timeline", [])
+    app.logger.info(f"Received relations: {relations}")
+
+    timeline = Timeline.from_relations(relations)
+    closed_timeline = timeline.closure()  # Compute the temporal closure
+    closed_relations = closed_timeline.to_dict()
+    app.logger.info(f"Computed timeline: {closed_relations}")
+
+    return jsonify({"timeline": closed_relations})
 
 
 if __name__ == "__main__":
