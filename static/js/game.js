@@ -129,12 +129,10 @@ function getCurrentAnnotation() {
     const timeline = [];
     const entities = gameData.ordered_entities;
     const idxMap = getIdxMap(entities.length);
-    console.log(entities);
 
     cells.forEach((cell, index) => {
         if (cell.textContent) {
             const [row, col] = idxMap[index];
-            console.log(row, col);
             timeline.push({
                 relation: cell.textContent,
                 source: `${row % 2 === 0 ? 'start' : 'end'} ${entities[Math.floor((row + 2) / 2)]}`,
@@ -143,7 +141,6 @@ function getCurrentAnnotation() {
         }
     });
 
-    console.log('Current Timeline:', timeline);
     return timeline;
 }
 
@@ -167,10 +164,11 @@ function computeTemporalClosure() {
         });
 }
 
-// Add this function to update the board with the computed closure
+// Update this function to update the board with the computed closure
 function updateBoardWithClosure(timeline) {
     const cells = document.querySelectorAll('.board-cell');
     const entities = gameData.ordered_entities;
+    const idxMap = getIdxMap(entities.length);
 
     timeline.forEach(item => {
         const sourceIndex = entities.indexOf(item.source.split(' ')[1]);
@@ -178,10 +176,41 @@ function updateBoardWithClosure(timeline) {
         const sourceType = item.source.split(' ')[0];
         const targetType = item.target.split(' ')[0];
 
-        const rowIndex = (sourceIndex - 2) * 2 + (sourceType === 'end' ? 1 : 0);
-        const colIndex = targetIndex * 2 + (targetType === 'end' ? 1 : 0);
+        let rowIndex = (sourceIndex - 1) * 2 + (sourceType === 'end' ? 1 : 0);
+        let colIndex = targetIndex * 2 + (targetType === 'end' ? 1 : 0);
 
-        const cellIndex = rowIndex * (entities.length - 2) + colIndex;
-        cells[cellIndex].textContent = item.relation;
+        // Check if the (rowIndex, colIndex) pair exists in idxMap
+        let cellIndex = Object.keys(idxMap).find(key =>
+            idxMap[key][0] === rowIndex && idxMap[key][1] === colIndex
+        );
+
+        // If not found, invert the relation
+        if (cellIndex === undefined) {
+
+            let rowIndex = (targetIndex - 1) * 2 + (targetType === 'end' ? 1 : 0);
+            let colIndex = sourceIndex * 2 + (sourceType === 'end' ? 1 : 0);
+
+            cellIndex = Object.keys(idxMap).find(key =>
+                idxMap[key][0] === rowIndex && idxMap[key][1] === colIndex
+            );
+
+            // Invert the relation
+            item.relation = invertRelation(item.relation);
+        }
+
+        if (cellIndex !== undefined) {
+            cells[cellIndex].textContent = item.relation;
+        }
     });
+}
+
+// Add this helper function to invert relations
+function invertRelation(relation) {
+    const inversionMap = {
+        '<': '>',
+        '>': '<',
+        '=': '=',
+        '-': '-'
+    };
+    return inversionMap[relation] || relation;
 }
