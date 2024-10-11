@@ -1,115 +1,115 @@
 {
-  "context": "Documents Creation Time: <t0>11/02/89</t0>\nUpjohn Co. <ei421>said</ei421> it will <ei422>offer</ei422> an early retirement package to as many as 1,100 employees in a cost-cutting <ei424>move</ei424> <ei425>expected</ei425> to <ei426>result</ei426> in a <t79>fourth-quarter</t79> <ei427>charge</ei427>.",
+  "context": "Documents Creation Time: <t0>11/02/89</t0>\nUpjohn Co. <e1>said</e1> it will <e2>offer</e2> an early retirement package to as many as 1,100 employees in a cost-cutting <e4>move</e4> <e5>expected</e5> to <e6>result</e6> in a <t1>fourth-quarter</t1> <e7>charge</e7>.",
   "timeline": [
     {
       "relation": "<",
-      "source": "start ei427",
-      "target": "end t79"
+      "source": "start e7",
+      "target": "end t1"
     },
     {
       "relation": "<",
-      "source": "start ei422",
-      "target": "end ei424"
+      "source": "start e2",
+      "target": "end e4"
     },
     {
       "relation": ">",
-      "source": "start ei427",
-      "target": "start t79"
+      "source": "start e7",
+      "target": "start t1"
     },
     {
       "relation": ">",
-      "source": "end ei422",
-      "target": "start ei424"
+      "source": "end e2",
+      "target": "start e4"
     },
     {
       "relation": "<",
-      "source": "end ei421",
+      "source": "end e1",
       "target": "start t0"
     },
     {
       "relation": ">",
-      "source": "start ei425",
+      "source": "start e5",
       "target": "start t0"
     },
     {
       "relation": ">",
-      "source": "end ei427",
-      "target": "start t79"
+      "source": "end e7",
+      "target": "start t1"
     },
     {
       "relation": "<",
-      "source": "start ei421",
-      "target": "start ei425"
+      "source": "start e1",
+      "target": "start e5"
     },
     {
       "relation": ">",
-      "source": "end ei425",
+      "source": "end e5",
       "target": "start t0"
     },
     {
       "relation": "<",
-      "source": "end ei421",
+      "source": "end e1",
       "target": "end t0"
     },
     {
       "relation": "<",
-      "source": "end ei427",
-      "target": "end t79"
+      "source": "end e7",
+      "target": "end t1"
     },
     {
       "relation": "<",
-      "source": "start ei425",
+      "source": "start e5",
       "target": "end t0"
     },
     {
       "relation": "<",
-      "source": "end ei421",
-      "target": "start ei425"
+      "source": "end e1",
+      "target": "start e5"
     },
     {
       "relation": "<",
-      "source": "start ei421",
+      "source": "start e1",
       "target": "end t0"
     },
     {
       "relation": "<",
-      "source": "start ei421",
+      "source": "start e1",
       "target": "start t0"
     },
     {
       "relation": ">",
-      "source": "start ei422",
-      "target": "start ei424"
+      "source": "start e2",
+      "target": "start e4"
     },
     {
       "relation": "<",
-      "source": "end ei422",
-      "target": "end ei424"
+      "source": "end e2",
+      "target": "end e4"
     },
     {
       "relation": "<",
-      "source": "start ei421",
-      "target": "end ei425"
+      "source": "start e1",
+      "target": "end e5"
     },
     {
       "relation": "<",
-      "source": "end ei421",
-      "target": "end ei425"
+      "source": "end e1",
+      "target": "end e5"
     },
     {
       "relation": "<",
-      "source": "end ei425",
+      "source": "end e5",
       "target": "end t0"
     }
   ],
   "entities": [
-    "ei424",
-    "ei427",
-    "ei425",
-    "ei421",
-    "ei422",
-    "ei426",
-    "t79",
+    "e4",
+    "e7",
+    "e5",
+    "e1",
+    "e2",
+    "e6",
+    "t1",
     "t0"
   ],
   "id": "wsj_0184_0"
