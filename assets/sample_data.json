@@ -1,0 +1,31 @@
+{
+  "context": "Documents Creation Time: <t92>10/27/89</t92>\nIMA Holdings Corp. <ei386>completed</ei386> its $3 billion <ei387>acquisition</ei387> of American Medical International Inc.",
+  "timeline": [
+    {
+      "relation": "<",
+      "source": "start ei386",
+      "target": "start t92"
+    },
+    {
+      "relation": "<",
+      "source": "end ei386",
+      "target": "end t92"
+    },
+    {
+      "relation": "<",
+      "source": "end ei386",
+      "target": "start t92"
+    },
+    {
+      "relation": "<",
+      "source": "start ei386",
+      "target": "end t92"
+    }
+  ],
+  "entities": [
+    "ei386",
+    "ei387",
+    "t92"
+  ],
+  "id": "wsj_0786_0"
+}

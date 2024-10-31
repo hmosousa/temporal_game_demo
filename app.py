@@ -2,8 +2,10 @@ import json
 import re
 
 from flask import Flask, render_template, jsonify, request
+
 from src.utils import highlight_entities, build_entities_dict
 from src.temporal_closure import Timeline
+from src.constants import ASSETS_DIR
 
 app = Flask(__name__)
 
@@ -29,7 +31,7 @@ def _build_data(data):
 
 @app.route("/")
 def index():
-    with open("sample_data.json", "r") as f:
+    with open(ASSETS_DIR / "sample_data.json", "r") as f:
         data = json.load(f)
     data = _build_data(data)
     return render_template("index.html", data=data)
@@ -37,7 +39,7 @@ def index():
 
 @app.route("/api/data", methods=["GET"])
 def get_context():
-    with open("sample_data.json", "r") as f:
+    with open(ASSETS_DIR / "sample_data.json", "r") as f:
         data = json.load(f)
     data = _build_data(data)
     return jsonify(data)
