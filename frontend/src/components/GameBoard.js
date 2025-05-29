@@ -158,7 +158,7 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
         <table className={styles.gridTable}>
           <thead>
             <tr>
-              <th></th>
+              <th className={styles.topLeftCell}></th>
               {filteredData.visibleEndpoints.map((endpoint, index) => (
                 <th key={index} className={styles.columnEntityLabel} title={endpoint}>
                   {formatEndpointDisplay(endpoint)}

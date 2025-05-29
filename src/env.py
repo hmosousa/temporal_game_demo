@@ -6,12 +6,9 @@ from typing import Callable, Literal
 
 import datasets
 import numpy as np
-import transformers
 
 from src.base import (
     ENDPOINTS,
-    ID2RELATIONS,
-    NEW_TOKENS,
     RELATIONS,
     RELATIONS2ID,
     Endpoint,

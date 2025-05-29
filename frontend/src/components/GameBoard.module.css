@@ -40,6 +40,11 @@
   color: #000000;
 }
 
+.topLeftCell {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .entityLabel {
   font-weight: 600;
   white-space: nowrap;
