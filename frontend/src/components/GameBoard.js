@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import styles from './GameBoard.module.css'
 import PropTypes from 'prop-types'
 
@@ -25,13 +25,55 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
-  // Handle cell click to show relation options
-  const handleCellClick = (rowIdx, colIdx, e) => {
-    // Skip if cell is masked (not available for interaction)
-    if (board[rowIdx] && board[rowIdx][colIdx] === MASKED_POSITION) {
-      return
+  // Filter out masked rows and columns
+  const filteredData = useMemo(() => {
+    if (!board || !endpoints || board.length === 0 || endpoints.length === 0) {
+      return { visibleRows: [], visibleColumns: [], visibleEndpoints: [] }
     }
 
+    // Find which rows and columns should be visible (not all MASKED)
+    const visibleRowIndices = []
+    const visibleColumnIndices = []
+
+    // Check rows - a row is visible if it has at least one non-MASKED cell
+    for (let rowIdx = 0; rowIdx < board.length; rowIdx++) {
+      const hasVisibleCell = board[rowIdx].some(cellValue => cellValue !== MASKED_POSITION)
+      if (hasVisibleCell) {
+        visibleRowIndices.push(rowIdx)
+      }
+    }
+
+    // Check columns - a column is visible if it has at least one non-MASKED cell
+    for (let colIdx = 0; colIdx < (board[0]?.length || 0); colIdx++) {
+      const hasVisibleCell = board.some(row => row[colIdx] !== MASKED_POSITION)
+      if (hasVisibleCell) {
+        visibleColumnIndices.push(colIdx)
+      }
+    }
+
+    // Create filtered data structure
+    const visibleRows = visibleRowIndices.map(rowIdx => ({
+      originalRowIdx: rowIdx,
+      endpoint: endpoints[rowIdx],
+      cells: visibleColumnIndices.map(colIdx => ({
+        originalColIdx: colIdx,
+        value: board[rowIdx][colIdx]
+      })).filter(cell => cell.value !== MASKED_POSITION)
+    }))
+
+    const visibleEndpoints = visibleColumnIndices
+      .map(colIdx => endpoints[colIdx])
+      .filter((_, filterIdx) => {
+        // Only include endpoints for columns that have at least one visible cell
+        const colIdx = visibleColumnIndices[filterIdx]
+        return board.some(row => row[colIdx] !== MASKED_POSITION)
+      })
+
+    return { visibleRows, visibleColumnIndices, visibleEndpoints }
+  }, [board, endpoints])
+
+  // Handle cell click to show relation options
+  const handleCellClick = (originalRowIdx, originalColIdx, e) => {
     if (e) {
       const rect = e.currentTarget.getBoundingClientRect()
       setPopupPosition({
@@ -41,10 +83,10 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
     }
 
     const isAlreadySelected = selectedCell && 
-                             selectedCell.rowIdx === rowIdx && 
-                             selectedCell.colIdx === colIdx
+                             selectedCell.rowIdx === originalRowIdx && 
+                             selectedCell.colIdx === originalColIdx
 
-    setSelectedCell(isAlreadySelected ? null : { rowIdx, colIdx })
+    setSelectedCell(isAlreadySelected ? null : { rowIdx: originalRowIdx, colIdx: originalColIdx })
   }
 
   // Handle relation selection
@@ -80,16 +122,14 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
   }
 
   // Get cell CSS classes
-  const getCellClasses = (rowIdx, colIdx, value) => {
+  const getCellClasses = (originalRowIdx, originalColIdx, value) => {
     const isSelected = selectedCell && 
-                      selectedCell.rowIdx === rowIdx && 
-                      selectedCell.colIdx === colIdx
+                      selectedCell.rowIdx === originalRowIdx && 
+                      selectedCell.colIdx === originalColIdx
     
     const classes = [styles.gridCell]
     
-    if (value === MASKED_POSITION) {
-      classes.push(styles.disabled)
-    } else if (value !== UNCLASSIFIED_POSITION) {
+    if (value !== UNCLASSIFIED_POSITION) {
       classes.push(styles.active)
     }
     
@@ -117,7 +157,7 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
           <thead>
             <tr>
               <th></th>
-              {endpoints.map((endpoint, index) => (
+              {filteredData.visibleEndpoints.map((endpoint, index) => (
                 <th key={index} className={styles.columnEntityLabel} title={endpoint}>
                   {formatEndpointDisplay(endpoint)}
                 </th>
@@ -125,20 +165,20 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
             </tr>
           </thead>
           <tbody>
-            {board.map((row, rowIdx) => (
-              <tr key={rowIdx}>
-                <td className={styles.rowEntityLabel} title={endpoints[rowIdx]}>
-                  {formatEndpointDisplay(endpoints[rowIdx])}
+            {filteredData.visibleRows.map((row, displayRowIdx) => (
+              <tr key={displayRowIdx}>
+                <td className={styles.rowEntityLabel} title={row.endpoint}>
+                  {formatEndpointDisplay(row.endpoint)}
                 </td>
-                {row.map((cellValue, colIdx) => (
+                {row.cells.map((cell, displayColIdx) => (
                   <td
-                    key={colIdx}
-                    className={getCellClasses(rowIdx, colIdx, cellValue)}
-                    onClick={(e) => handleCellClick(rowIdx, colIdx, e)}
-                    title={`${endpoints[rowIdx]} → ${endpoints[colIdx]}: ${getCellDisplay(cellValue) || 'No relation'}`}
-                    data-relation={getCellDisplay(cellValue)}
+                    key={displayColIdx}
+                    className={getCellClasses(row.originalRowIdx, cell.originalColIdx, cell.value)}
+                    onClick={(e) => handleCellClick(row.originalRowIdx, cell.originalColIdx, e)}
+                    title={`${row.endpoint} → ${endpoints[cell.originalColIdx]}: ${getCellDisplay(cell.value) || 'No relation'}`}
+                    data-relation={getCellDisplay(cell.value)}
                   >
-                    {getCellDisplay(cellValue)}
+                    {getCellDisplay(cell.value)}
                   </td>
                 ))}
               </tr>

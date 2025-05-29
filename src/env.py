@@ -176,7 +176,7 @@ class Game:
         """Make the state of the environment."""
         board = np.full(shape=(self.n_endpoints, self.n_endpoints), fill_value=MASKED_POSITION, dtype=int)
         for idx in self.idx2edp_pair.keys():
-            self.state["board"][idx] = UNCLASSIFIED_POSITION
+            board[idx] = UNCLASSIFIED_POSITION
         if relations is not None:
             for rel in relations:
                 src_idx, tgt_idx = self.edp_pair2idx[(rel["source"], rel["target"])]
