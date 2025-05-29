@@ -30,10 +30,10 @@ def new_game():
     
     # Get level from request data, default to 2
     data = request.get_json() or {}
-    level = data.get("level", 2)
+    level = data.get("level", 3)
     
     # Validate level
-    if not isinstance(level, int) or level < 2 or level > 6:
+    if not isinstance(level, int) or level < 2 or level > 5:
         logger.error(f"Invalid level: {level}")
         return jsonify({"error": "Level must be an integer between 2 and 6"}), 400
     

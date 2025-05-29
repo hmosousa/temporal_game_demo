@@ -51,29 +51,26 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
       }
     }
 
-    // Create filtered data structure
+    // Create filtered data structure - maintain grid positions
     const visibleRows = visibleRowIndices.map(rowIdx => ({
       originalRowIdx: rowIdx,
       endpoint: endpoints[rowIdx],
       cells: visibleColumnIndices.map(colIdx => ({
         originalColIdx: colIdx,
-        value: board[rowIdx][colIdx]
-      })).filter(cell => cell.value !== MASKED_POSITION)
+        value: board[rowIdx][colIdx],
+        isMasked: board[rowIdx][colIdx] === MASKED_POSITION
+      }))
     }))
 
-    const visibleEndpoints = visibleColumnIndices
-      .map(colIdx => endpoints[colIdx])
-      .filter((_, filterIdx) => {
-        // Only include endpoints for columns that have at least one visible cell
-        const colIdx = visibleColumnIndices[filterIdx]
-        return board.some(row => row[colIdx] !== MASKED_POSITION)
-      })
+    const visibleEndpoints = visibleColumnIndices.map(colIdx => endpoints[colIdx])
 
     return { visibleRows, visibleColumnIndices, visibleEndpoints }
   }, [board, endpoints])
 
   // Handle cell click to show relation options
-  const handleCellClick = (originalRowIdx, originalColIdx, e) => {
+  const handleCellClick = (originalRowIdx, originalColIdx, isMasked, e) => {
+    if (isMasked) return // Don't allow interaction with masked cells
+    
     if (e) {
       const rect = e.currentTarget.getBoundingClientRect()
       setPopupPosition({
@@ -122,12 +119,17 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
   }
 
   // Get cell CSS classes
-  const getCellClasses = (originalRowIdx, originalColIdx, value) => {
+  const getCellClasses = (originalRowIdx, originalColIdx, value, isMasked) => {
     const isSelected = selectedCell && 
                       selectedCell.rowIdx === originalRowIdx && 
                       selectedCell.colIdx === originalColIdx
     
     const classes = [styles.gridCell]
+    
+    if (isMasked) {
+      classes.push(styles.disabled)
+      return classes.join(' ')
+    }
     
     if (value !== UNCLASSIFIED_POSITION) {
       classes.push(styles.active)
@@ -173,8 +175,8 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
                 {row.cells.map((cell, displayColIdx) => (
                   <td
                     key={displayColIdx}
-                    className={getCellClasses(row.originalRowIdx, cell.originalColIdx, cell.value)}
-                    onClick={(e) => handleCellClick(row.originalRowIdx, cell.originalColIdx, e)}
+                    className={getCellClasses(row.originalRowIdx, cell.originalColIdx, cell.value, cell.isMasked)}
+                    onClick={(e) => handleCellClick(row.originalRowIdx, cell.originalColIdx, cell.isMasked, e)}
                     title={`${row.endpoint} → ${endpoints[cell.originalColIdx]}: ${getCellDisplay(cell.value) || 'No relation'}`}
                     data-relation={getCellDisplay(cell.value)}
                   >
