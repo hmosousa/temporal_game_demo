@@ -135,6 +135,7 @@ class Game:
             "context": context,
             "board": board,
             "endpoints": endpoints,
+            "entities": [ent["text"] for ent in self.true_doc["entities"]],
         }
 
     def update_board(self, action):

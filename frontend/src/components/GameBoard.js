@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import styles from './GameBoard.module.css'
 import PropTypes from 'prop-types'
+import { generateEntityColor, getDarkerEntityColor, extractEntityId } from '../utils/entityColors'
 
 const RELATION_SYMBOLS = {
   0: '>',  // RELATIONS2ID mapping from backend
@@ -24,6 +25,35 @@ const MASKED_POSITION = -2
 export default function GameBoard({ board, endpoints, onMakeMove }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
+
+  // Create entity to color mapping
+  const entityColorMap = useMemo(() => {
+    const colors = [
+      { bg: '#FFE4E1', border: '#FF6B6B' }, // Light pink / Pink
+      { bg: '#E1F5FE', border: '#4FC3F7' }, // Light blue / Blue
+      { bg: '#E8F5E8', border: '#81C784' }, // Light green / Green
+      { bg: '#FFF3E0', border: '#FFB74D' }, // Light orange / Orange
+      { bg: '#F3E5F5', border: '#BA68C8' }, // Light purple / Purple
+    ]
+    
+    const map = {}
+    const seenEntities = []
+    
+    // Process endpoints in order to preserve entity order from the original entities list
+    endpoints.forEach(endpoint => {
+      const entityId = extractEntityId(endpoint)
+      if (entityId && !seenEntities.includes(entityId)) {
+        seenEntities.push(entityId)
+      }
+    })
+    
+    // Assign colors based on order of first appearance
+    seenEntities.forEach((entityId, index) => {
+      map[entityId] = colors[index % colors.length]
+    })
+    
+    return map
+  }, [endpoints])
 
   // Filter out masked rows and columns
   const filteredData = useMemo(() => {
@@ -142,6 +172,31 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
     return classes.join(' ')
   }
 
+  // Get entity-specific styles for row and column headers
+  const getEntityHeaderStyle = (endpoint) => {
+    const entityId = extractEntityId(endpoint)
+    if (!entityId || !entityColorMap[entityId]) return {}
+    
+    const colors = entityColorMap[entityId]
+    
+    return {
+      backgroundColor: colors.bg,
+      border: `2px solid ${colors.border}`,
+      color: '#000000'
+    }
+  }
+
+  // Get cell-specific styles that blend row and column entity colors
+  const getCellStyle = (rowEndpoint, colEndpoint, value, isMasked) => {
+    if (isMasked || value === UNCLASSIFIED_POSITION) return {}
+    
+    // For cells with relations, just add a subtle highlight
+    return {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      fontWeight: 'bold'
+    }
+  }
+
   if (!board || !endpoints || board.length === 0 || endpoints.length === 0) {
     return (
       <div className={styles.boardContainer}>
@@ -160,7 +215,7 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
             <tr>
               <th className={styles.topLeftCell}></th>
               {filteredData.visibleEndpoints.map((endpoint, index) => (
-                <th key={index} className={styles.columnEntityLabel} title={endpoint}>
+                <th key={index} className={styles.columnEntityLabel} title={endpoint} style={getEntityHeaderStyle(endpoint)}>
                   {formatEndpointDisplay(endpoint)}
                 </th>
               ))}
@@ -169,13 +224,14 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
           <tbody>
             {filteredData.visibleRows.map((row, displayRowIdx) => (
               <tr key={displayRowIdx}>
-                <td className={styles.rowEntityLabel} title={row.endpoint}>
+                <td className={styles.rowEntityLabel} title={row.endpoint} style={getEntityHeaderStyle(row.endpoint)}>
                   {formatEndpointDisplay(row.endpoint)}
                 </td>
                 {row.cells.map((cell, displayColIdx) => (
                   <td
                     key={displayColIdx}
                     className={getCellClasses(row.originalRowIdx, cell.originalColIdx, cell.value, cell.isMasked)}
+                    style={getCellStyle(row.endpoint, endpoints[cell.originalColIdx], cell.value, cell.isMasked)}
                     onClick={(e) => handleCellClick(row.originalRowIdx, cell.originalColIdx, cell.isMasked, e)}
                     title={`${row.endpoint} → ${endpoints[cell.originalColIdx]}: ${getCellDisplay(cell.value) || 'No relation'}`}
                     data-relation={getCellDisplay(cell.value)}

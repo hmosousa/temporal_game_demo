@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import styles from './TextDisplay.module.css'
+import { generateEntityColor, getDarkerEntityColor } from '../utils/entityColors'
 
 export default function TextDisplay({ contextWithTags }) {
   const displayText = useMemo(() => {
@@ -18,7 +19,8 @@ export default function TextDisplay({ contextWithTags }) {
         const entityId = `e${entityNumber}`
         // Generate a color for the entity based on its ID
         const entityColor = generateEntityColor(entityId)
-        return `<span class="${styles.entity}" style="background-color: ${entityColor}; border: 1px solid rgba(0,0,0,0.1)" data-id="${entityId}" title="Entity ${entityId}: ${content}">${content}</span>`
+        const borderColor = getDarkerEntityColor(entityId)
+        return `<span class="${styles.entity}" style="background-color: ${entityColor}; border: 1px solid ${borderColor}" data-id="${entityId}" title="Entity ${entityId}: ${content}">${content}</span>`
       }
     )
 
@@ -39,17 +41,4 @@ export default function TextDisplay({ contextWithTags }) {
       />
     </div>
   )
-}
-
-// Helper function to generate consistent colors for entities
-function generateEntityColor(entityId) {
-  // Use a simple hash to generate consistent colors for each entity ID
-  let hash = 0
-  for (let i = 0; i < entityId.length; i++) {
-    hash = entityId.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  
-  // Generate a light, pastel color
-  const hue = Math.abs(hash) % 360
-  return `hsla(${hue}, 70%, 85%, 0.8)`
 }
