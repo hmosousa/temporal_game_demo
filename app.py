@@ -7,7 +7,7 @@ import uuid
 from flask import Flask, jsonify, request, session
 
 from src.base import PointRelation
-from src.env import TemporalGame
+from src.env import TemporalGameEnv
 
 # Configure logging
 logging.basicConfig(

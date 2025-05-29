@@ -1,14 +1,10 @@
-import collections
 import copy
 import math
 import random
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal
 
 import datasets
-import gymnasium as gym
-import matplotlib.pyplot as plt
 import numpy as np
 import transformers
 
@@ -24,7 +20,7 @@ from src.base import (
     Timeline,
 )
 from src.constants import HF_DIR
-from src.data.utils import add_tags
+from src.utils import add_tags
 
 UNCLASSIFIED_POSITION = -1
 MASKED_POSITION = -2
@@ -282,7 +278,7 @@ class Game:
         return (self.state["predictions"] == UNCLASSIFIED_POSITION).reshape(-1)
 
 
-class TemporalGameEnv(gym.Env):
+class TemporalGameEnv:
     """Vectorized Temporal Game environment."""
 
     metadata = {"render_modes": ["rgb_array"]}
@@ -298,9 +294,7 @@ class TemporalGameEnv(gym.Env):
         closure: bool = False,
         mode: Literal["train", "valid", "test"] = "test",
         max_seq_len: int = 128,
-        shape_reward: bool = False,
     ):
-        super(TemporalGameEnv, self).__init__()
 
         self.mode = mode
         self.tokenizer = tokenizer
@@ -312,33 +306,6 @@ class TemporalGameEnv(gym.Env):
         self.n_docs = len(self.docs)
 
         self._obs_dim = math.comb(level, 2) * self.N_RELATIONS_PER_ENTITY_PAIR
-        self.observation_space = gym.spaces.Dict(
-            {
-                "predictions": gym.spaces.Box(
-                    low=-1, high=4, shape=(self._obs_dim, 1), dtype=int
-                ),
-                "input_ids": gym.spaces.Box(
-                    low=0,
-                    high=tokenizer.vocab_size,
-                    shape=(max_seq_len,),
-                    dtype=int,
-                ),
-                "attention_mask": gym.spaces.Box(
-                    low=0,
-                    high=1,
-                    shape=(max_seq_len,),
-                    dtype=int,
-                ),
-                "new_tokens_idxs": gym.spaces.Box(
-                    low=0,
-                    high=max_seq_len,
-                    shape=(self._obs_dim, 6),
-                    dtype=int,
-                ),
-            }
-        )
-
-        self.action_space = gym.spaces.MultiDiscrete([self._obs_dim, self.N_RELATIONS])
 
         self.reward_map = {
             "<": REWARD_ANNOTATED_CORRECT,
@@ -449,83 +416,6 @@ class TemporalGameEnv(gym.Env):
             board[row, col] = state[idx]
         board = board[:-2, 2:]  # Remove the last two rows and first two columns
         return board
-
-    def _render_board(self):
-        """Plot the board."""
-        board = self.state_to_board(self._state)
-
-        # Get the true relations as a board
-        true_state = copy.deepcopy(self._state)
-        true_state[true_state > UNCLASSIFIED_POSITION] = UNCLASSIFIED_POSITION
-
-        true_relations = self._true_timeline.to_dict()
-        for relation in true_relations:
-            src_idx = self._edp_pair2idx[(relation["source"], relation["target"])]
-            true_state[src_idx] = RELATIONS2ID[relation["relation"]]
-        true_board = self.state_to_board(true_state)
-
-        fig, ax = plt.subplots(figsize=(5, 5))
-
-        ax.matshow(board, cmap="Blues", vmin=-1, vmax=4)
-
-        # Get endpoint names for tick labels
-        edp_strs = [str(edp) for edp in self._endpoints]
-
-        # Add the predicted relation to the center of each cell
-        # And the true relation to the bottom right of each cell
-        for (i, j), val in np.ndenumerate(board):
-            if val >= 0:  # Only display valid relations
-                ax.text(
-                    j, i, ID2RELATIONS[val], ha="center", va="center", color="black"
-                )
-
-            if true_board[i, j] >= 0:
-                ax.text(
-                    j + 0.4,
-                    i + 0.4,
-                    ID2RELATIONS[true_board[i, j]],
-                    ha="center",
-                    va="center",
-                    color="darkgreen",
-                    fontsize=6,
-                    fontweight="bold",
-                )
-
-        # Highlight the square representing the action taken in this step
-        if self._step_id > 0:
-            position, _ = self._last_action
-            src_endpoint, tgt_endpoint = self._idx2edp_pair[position]
-            row = edp_strs.index(src_endpoint)
-            col = edp_strs.index(tgt_endpoint) - 2
-            rect = plt.Rectangle(
-                (col - 0.5, row - 0.5), 1, 1, edgecolor="red", facecolor="none", lw=2
-            )
-            ax.add_patch(rect)
-
-        # Set major ticks at the center of each cell with endpoint labels
-        ax.set_xticks(np.arange(board.shape[1]))
-        ax.set_xticklabels(edp_strs[2:], rotation=90, ha="center")
-        ax.set_yticks(np.arange(board.shape[0]))
-        ax.set_yticklabels(edp_strs[:-2])
-
-        # Draw custom grid lines
-        mask = board == -2
-        for (i, j), val in np.ndenumerate(board):
-            if not mask[i, j]:
-                # Horizontal lines
-                ax.plot(
-                    [j - 0.5, j + 0.5], [i + 0.5, i + 0.5], color="grey", linewidth=0.5
-                )
-
-                # Vertical lines
-                ax.plot(
-                    [j + 0.5, j + 0.5], [i - 0.5, i + 0.5], color="grey", linewidth=0.5
-                )
-                ax.plot(
-                    [j - 0.5, j - 0.5], [i - 0.5, i + 0.5], color="grey", linewidth=0.5
-                )
-
-        ax.tick_params(which="minor", size=0)  # Hide minor ticks?
 
     @property
     def n_entities(self):
