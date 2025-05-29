@@ -24,7 +24,7 @@ export default function Home() {
             </Link>
             <Link 
               href="/annotate" 
-              className="btn-secondary w-40 text-center block"
+              className="btn-primary w-40 text-center block"
             >
               Annotate
             </Link>
