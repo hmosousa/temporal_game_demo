@@ -133,7 +133,7 @@ class Game:
     def init_state(self):
         context = add_tags(self.true_doc["text"], self.true_doc["entities"])
         board = self.make_board()
-        endpoints = [str(edp) for edp in self.endpoints]
+        endpoints = [f"{edp.type} {edp.text}" for edp in self.endpoints]
         return {
             "context": context,
             "board": board,

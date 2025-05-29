@@ -8,16 +8,17 @@ export default function TextDisplay({ contextWithTags }) {
     if (!contextWithTags) return ""
 
     // Parse the XML-tagged context and convert to HTML with styling
-    // The context comes with XML tags like <entity id="e0" text="event">content</entity>
+    // The context comes with XML tags like <e0>text content</e0>, <e1>another event</e1>, etc.
     let result = contextWithTags
 
-    // Replace XML entity tags with HTML spans
+    // Replace entity tags in the format <eN>content</eN> with styled HTML spans
     result = result.replace(
-      /<entity\s+id="([^"]+)"\s+text="([^"]*)"[^>]*>(.*?)<\/entity>/g,
-      (match, id, text, content) => {
+      /<e(\d+)>(.*?)<\/e\d+>/g,
+      (match, entityNumber, content) => {
+        const entityId = `e${entityNumber}`
         // Generate a color for the entity based on its ID
-        const entityColor = generateEntityColor(id)
-        return `<span class="${styles.entity}" style="background-color: ${entityColor}; border: 1px solid rgba(0,0,0,0.1)" data-id="${id}" title="${id}: ${text}">${content}</span>`
+        const entityColor = generateEntityColor(entityId)
+        return `<span class="${styles.entity}" style="background-color: ${entityColor}; border: 1px solid rgba(0,0,0,0.1)" data-id="${entityId}" title="Entity ${entityId}: ${content}">${content}</span>`
       }
     )
 
