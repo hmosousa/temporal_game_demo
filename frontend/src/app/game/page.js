@@ -196,9 +196,6 @@ export default function Game() {
 
           <div className="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-6">
-              <div className="text-xl font-semibold text-dark">
-                Score: {gameData?.reward || 0}
-              </div>
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">
                   # Entities:
@@ -253,6 +250,7 @@ export default function Game() {
               endpoints={gameData?.endpoints || []}
               onMakeMove={handleMove}
               onUndo={handleUndo}
+              score={gameData?.reward || 0}
               disabled={loading}
               hasTemporalIncoherence={gameData?.terminated && !gameData?.is_success}
             />
