@@ -28,7 +28,7 @@ games = {}
 def new_game():
     logger.info("Creating new game")
     game_id = str(uuid.uuid4())
-    game = TemporalGameEnv(mode="test", level=None)
+    game = TemporalGameEnv(mode="test", level=2, )
     obs, info = game.reset()
 
     games[game_id] = {"game": game, "obs": obs, "info": info, "reward": 0}

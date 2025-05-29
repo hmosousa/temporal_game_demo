@@ -170,16 +170,18 @@ class Game:
 
         # Update board state
         board = self.make_board(self.pred_doc["relations"])
-        return board
+        return board.tolist()
 
     def make_board(self, relations=None):
         """Make the state of the environment."""
-        board = np.full(shape=(self.n_endpoints, self.n_endpoints), fill_value=UNCLASSIFIED_POSITION, dtype=int)
+        board = np.full(shape=(self.n_endpoints, self.n_endpoints), fill_value=MASKED_POSITION, dtype=int)
+        for idx in self.idx2edp_pair.keys():
+            self.state["board"][idx] = UNCLASSIFIED_POSITION
         if relations is not None:
             for rel in relations:
                 src_idx, tgt_idx = self.edp_pair2idx[(rel["source"], rel["target"])]
                 board[src_idx, tgt_idx] = RELATIONS2ID[rel["relation"]]
-        return board
+        return board.tolist()
 
     @property
     def terminated(self):

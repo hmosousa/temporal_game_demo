@@ -44,7 +44,7 @@ export default function Game() {
     }
   }
 
-  const handleMove = async (source, target, relation) => {
+  const handleMove = async (position, relation) => {
     if (!gameId) return
 
     try {
@@ -56,9 +56,7 @@ export default function Game() {
         },
         body: JSON.stringify({
           game_id: gameId,
-          source,
-          target,
-          relation
+          action: [position, relation]
         })
       })
 
@@ -157,13 +155,12 @@ export default function Game() {
           <div className="flex flex-col gap-6">
             <TextDisplay
               text={gameData?.text || ""}
-              entities={gameData?.entities || []}
+              contextWithTags={gameData?.text || ""}
             />
 
             <GameBoard
-              candidates={gameData?.candidates || []}
-              timeline={gameData?.timeline || []}
-              entities={gameData?.entities || []}
+              board={gameData?.board || []}
+              endpoints={gameData?.endpoints || []}
               onMakeMove={handleMove}
             />
           </div>

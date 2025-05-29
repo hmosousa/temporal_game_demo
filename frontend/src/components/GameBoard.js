@@ -1,128 +1,36 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState } from 'react'
 import styles from './GameBoard.module.css'
 import PropTypes from 'prop-types'
 
-const ENDPOINTS = ['start', 'end']
-const MAX_TEXT_LENGTH = 12
-
-const truncateText = (text, maxLength = MAX_TEXT_LENGTH) => {
-  if (!text) return ''
-  return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
+const RELATION_SYMBOLS = {
+  0: '>',  // RELATIONS2ID mapping from backend
+  1: '<',
+  2: '=',
+  3: '-'
 }
 
-// Custom hook to handle grid creation
-function useGameGrid(candidates, timeline, entities, entityOrder) {
-  return useMemo(() => {
-    const entityMap = entities.reduce((map, entity) => {
-      map[entity.id] = entity.text || entity.id
-      return map
-    }, {})
-
-    const endpointMap = candidates.reduce((map, [source, target]) => {
-      const [sourceEndpoint, sourceId] = source.split(' ')
-      const [targetEndpoint, targetId] = target.split(' ')
-
-      map[sourceId] = { ...map[sourceId], [sourceEndpoint]: true }
-      map[targetId] = { ...map[targetId], [targetEndpoint]: true }
-      return map
-    }, {})
-
-    // Create grid structure
-    const allRows = []
-
-    // Use the stored entity order instead of recalculating it
-    const entityIds = entityOrder.length > 0 ? entityOrder : Object.keys(endpointMap)
-
-    // Headers row
-    const headers = []
-    entityIds.forEach(entityId => {
-      ENDPOINTS.forEach(endpoint => {
-        if (endpointMap[entityId]?.[endpoint]) {
-          headers.push(`${endpoint} ${entityId}`)
-        }
-      })
-    })
-
-    // Filter the headers to remove the first two
-    const filteredHeaders = headers.slice(2)
-
-    // Create rows for the grid
-    entityIds.forEach(rowEntityId => {
-      ENDPOINTS.forEach(rowEndpoint => {
-        if (endpointMap[rowEntityId]?.[rowEndpoint]) {
-          const rowKey = `${rowEndpoint} ${rowEntityId}`
-          const row = {
-            key: rowKey,
-            // Create display key with entity text and endpoint
-            displayKey: `${rowEndpoint} (${entityMap[rowEntityId] || rowEntityId})`,
-            cells: []
-          }
-
-          // Add cells for each column
-          entityIds.forEach(colEntityId => {
-            ENDPOINTS.forEach(colEndpoint => {
-              if (endpointMap[colEntityId]?.[colEndpoint]) {
-                const colKey = `${colEndpoint} ${colEntityId}`
-                const sourcePoint = rowKey
-                const targetPoint = colKey
-
-                // Check if this pair exists
-                const pairInCandidates = candidatesContainsPair(candidates, sourcePoint, targetPoint)
-
-                // Disable the cells that are not in the candidates
-                const isDisabled = !pairInCandidates
-
-                // Check if the cell already has a relation
-                const hasRelation = getRelationFromTimeline(timeline, sourcePoint, targetPoint)
-
-                row.cells.push({
-                  source: sourcePoint,
-                  target: targetPoint,
-                  // Create display target with entity text and endpoint
-                  displayTarget: `${colEndpoint} (${entityMap[colEntityId] || colEntityId})`,
-                  relation: hasRelation || '',
-                  disabled: isDisabled
-                })
-              }
-            })
-          })
-
-          // Only keep the cells that correspond to columns we want (remove first two)
-          row.cells = row.cells.slice(2)
-          allRows.push(row)
-        }
-      })
-    })
-
-    // Remove the last two rows
-    const grid = allRows.slice(0, -2)
-
-    return { entityMap, endpointMap, grid, headers: filteredHeaders }
-  }, [candidates, timeline, entities, entityOrder])
+const RELATION_NAMES = {
+  0: 'After',
+  1: 'Before', 
+  2: 'Equal',
+  3: 'Unknown'
 }
 
-export default function GameBoard({ candidates, timeline, onMakeMove, entities = [] }) {
-  // Group related state
+const UNCLASSIFIED_POSITION = -1
+const MASKED_POSITION = -2
+
+export default function GameBoard({ board, endpoints, onMakeMove }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
-  const [entityOrder, setEntityOrder] = useState([])
 
-  // Use custom hook for grid creation
-  const { entityMap, endpointMap, grid } = useGameGrid(candidates, timeline, entities, entityOrder)
-
-  // Entity order effect
-  useEffect(() => {
-    if (entities.length > 0) {
-      // Remove the sorting, just use the entities as they come
-      setEntityOrder(entities.map(entity => entity.id))
+  // Handle cell click to show relation options
+  const handleCellClick = (rowIdx, colIdx, e) => {
+    // Skip if cell is masked (not available for interaction)
+    if (board[rowIdx] && board[rowIdx][colIdx] === MASKED_POSITION) {
+      return
     }
-  }, [JSON.stringify(entities)])
-
-  // Handlers
-  const handleCellClick = (cell, e) => {
-    if (cell.disabled) return
 
     if (e) {
       const rect = e.currentTarget.getBoundingClientRect()
@@ -132,34 +40,74 @@ export default function GameBoard({ candidates, timeline, onMakeMove, entities =
       })
     }
 
-    setSelectedCell(selectedCell?.source === cell.source &&
-                   selectedCell?.target === cell.target ? null : cell)
+    const isAlreadySelected = selectedCell && 
+                             selectedCell.rowIdx === rowIdx && 
+                             selectedCell.colIdx === colIdx
+
+    setSelectedCell(isAlreadySelected ? null : { rowIdx, colIdx })
   }
 
-  const handleRelationSelect = (relation) => {
+  // Handle relation selection
+  const handleRelationSelect = (relationId) => {
     if (!selectedCell) return
-    onMakeMove(selectedCell.source, selectedCell.target, relation)
+
+    const position = [selectedCell.rowIdx, selectedCell.colIdx]
+    const relation = RELATION_SYMBOLS[relationId]
+    
+    onMakeMove(position, relation)
     setSelectedCell(null)
   }
 
-  // Process a display key like "start (warning)" to extract parts
-  const formatEndpointDisplay = (displayText) => {
-    // The format is "endpoint (entityText)"
-    const match = displayText.match(/^(\w+) \((.*)\)$/)
-    if (match) {
-      const [, endpoint, entityText] = match
+  // Format endpoint display text
+  const formatEndpointDisplay = (endpoint) => {
+    // endpoint format is like "start e0" or "end e1"
+    const [type, entityId] = endpoint.split(' ')
+    const subscript = type === 'start' ? 's' : 'e'
+    
+    return (
+      <div className={styles.endpointDisplay}>
+        <sub className={styles.endpointType}>{subscript}</sub>
+        <span className={styles.entityTextDisplay}>{entityId}</span>
+      </div>
+    )
+  }
 
-      // Use subscript 's' for start and 'e' for end
-      const subscript = endpoint === 'start' ? 's' : 'e'
+  // Get the cell value to display
+  const getCellDisplay = (value) => {
+    if (value === UNCLASSIFIED_POSITION) return ''
+    if (value === MASKED_POSITION) return ''
+    return RELATION_SYMBOLS[value] || ''
+  }
 
-      return (
-        <div className={styles.endpointDisplay}>
-          <sub className={styles.endpointType}>{subscript}</sub>
-          <span className={styles.entityTextDisplay}>{truncateText(entityText)}</span>
-        </div>
-      )
+  // Get cell CSS classes
+  const getCellClasses = (rowIdx, colIdx, value) => {
+    const isSelected = selectedCell && 
+                      selectedCell.rowIdx === rowIdx && 
+                      selectedCell.colIdx === colIdx
+    
+    const classes = [styles.gridCell]
+    
+    if (value === MASKED_POSITION) {
+      classes.push(styles.disabled)
+    } else if (value !== UNCLASSIFIED_POSITION) {
+      classes.push(styles.active)
     }
-    return displayText
+    
+    if (isSelected) {
+      classes.push(styles.selected)
+    }
+    
+    return classes.join(' ')
+  }
+
+  if (!board || !endpoints || board.length === 0 || endpoints.length === 0) {
+    return (
+      <div className={styles.boardContainer}>
+        <div className="text-center p-8">
+          <p className="text-gray-500">Loading game board...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -169,41 +117,30 @@ export default function GameBoard({ candidates, timeline, onMakeMove, entities =
           <thead>
             <tr>
               <th></th>
-              {grid[0]?.cells.map((cell, index) => (
-                <th key={index} className={styles.columnEntityLabel} title={cell.displayTarget}>
-                  {formatEndpointDisplay(cell.displayTarget)}
+              {endpoints.map((endpoint, index) => (
+                <th key={index} className={styles.columnEntityLabel} title={endpoint}>
+                  {formatEndpointDisplay(endpoint)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {grid.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                <td className={styles.rowEntityLabel} title={row.displayKey}>
-                  {formatEndpointDisplay(row.displayKey)}
+            {board.map((row, rowIdx) => (
+              <tr key={rowIdx}>
+                <td className={styles.rowEntityLabel} title={endpoints[rowIdx]}>
+                  {formatEndpointDisplay(endpoints[rowIdx])}
                 </td>
-                {row.cells.map((cell, cellIndex) => {
-                  const isSelected = selectedCell &&
-                    selectedCell.source === cell.source &&
-                    selectedCell.target === cell.target;
-
-                  return (
-                    <td
-                      key={cellIndex}
-                      className={`
-                        ${styles.gridCell}
-                        ${cell.disabled ? styles.disabled : ''}
-                        ${cell.relation ? styles.active : ''}
-                        ${isSelected ? styles.selected : ''}
-                      `}
-                      onClick={(e) => handleCellClick(cell, e)}
-                      title={`${row.displayKey} → ${cell.displayTarget}: ${cell.relation || 'No relation'}`}
-                      data-relation={cell.relation || ''}
-                    >
-                      {cell.relation}
-                    </td>
-                  );
-                })}
+                {row.map((cellValue, colIdx) => (
+                  <td
+                    key={colIdx}
+                    className={getCellClasses(rowIdx, colIdx, cellValue)}
+                    onClick={(e) => handleCellClick(rowIdx, colIdx, e)}
+                    title={`${endpoints[rowIdx]} → ${endpoints[colIdx]}: ${getCellDisplay(cellValue) || 'No relation'}`}
+                    data-relation={getCellDisplay(cellValue)}
+                  >
+                    {getCellDisplay(cellValue)}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -226,25 +163,29 @@ export default function GameBoard({ candidates, timeline, onMakeMove, entities =
           >
             <button
               className={`${styles.popupOption} ${styles.beforeOption}`}
-              onClick={() => handleRelationSelect('<')}
+              onClick={() => handleRelationSelect(1)}
+              title="Before (<)"
             >
               &lt;
             </button>
             <button
               className={`${styles.popupOption} ${styles.afterOption}`}
-              onClick={() => handleRelationSelect('>')}
+              onClick={() => handleRelationSelect(0)}
+              title="After (>)"
             >
               &gt;
             </button>
             <button
               className={`${styles.popupOption} ${styles.equalOption}`}
-              onClick={() => handleRelationSelect('=')}
+              onClick={() => handleRelationSelect(2)}
+              title="Equal (=)"
             >
               =
             </button>
             <button
               className={`${styles.popupOption} ${styles.unknownOption}`}
-              onClick={() => handleRelationSelect('-')}
+              onClick={() => handleRelationSelect(3)}
+              title="Unknown (-)"
             >
               -
             </button>
@@ -255,35 +196,9 @@ export default function GameBoard({ candidates, timeline, onMakeMove, entities =
   )
 }
 
-// PropTypes (if not using TypeScript)
+// PropTypes
 GameBoard.propTypes = {
-  candidates: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-  timeline: PropTypes.arrayOf(PropTypes.shape({
-    source: PropTypes.string.isRequired,
-    target: PropTypes.string.isRequired,
-    relation: PropTypes.string.isRequired
-  })).isRequired,
+  board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)).isRequired,
+  endpoints: PropTypes.arrayOf(PropTypes.string).isRequired,
   onMakeMove: PropTypes.func.isRequired,
-  entities: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    text: PropTypes.string,
-    offsets: PropTypes.arrayOf(PropTypes.number).isRequired
-  }))
-}
-
-// Helper functions
-function candidatesContainsPair(candidates, source, target) {
-  const result = candidates.some(([s, t]) =>
-    (s === source && t === target)
-  );
-  return result;
-}
-
-function getRelationFromTimeline(timeline, source, target) {
-  for (const rel of timeline) {
-    if (rel.source === source && rel.target === target) {
-      return rel.relation;
-    }
-  }
-  return null;
 }
