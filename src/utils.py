@@ -38,7 +38,7 @@ def add_tags(text: str, entities: List[Endpoint]) -> str:
     tagged_text = ""
     for eid, entity in enumerate(entities):
         tagged_text += text[offset : entity["offsets"][0]]
-        tagged_text += f"<start><end><e{eid}>{entity['text']}</e{eid}>"
+        tagged_text += f"<e{eid}>{entity['text']}</e{eid}>"
         offset = entity["offsets"][1]
     tagged_text += text[offset:]
     return tagged_text
