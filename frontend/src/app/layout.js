@@ -1,3 +1,5 @@
+import './globals.css'
+
 export const metadata = {
   title: 'Temporal Game',
   description: 'A web demo for the TemporalGame',

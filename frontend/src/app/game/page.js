@@ -1,0 +1,175 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import GameBoard from '../../components/GameBoard'
+import TextDisplay from '../../components/TextDisplay'
+import GameOver from '../../components/GameOver'
+import Footer from '../../components/Footer'
+import Link from 'next/link'
+
+export default function Game() {
+  const [gameData, setGameData] = useState(null)
+  const [gameId, setGameId] = useState(null)
+  const [gameOver, setGameOver] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    startNewGame()
+  }, [])
+
+  const startNewGame = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/new_game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to start a new game')
+      }
+
+      const data = await response.json()
+      setGameData(data)
+      setGameId(data.game_id)
+      setGameOver(false)
+    } catch (err) {
+      console.error('Error starting a new game:', err)
+      setError('Error starting a new game. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMove = async (source, target, relation) => {
+    if (!gameId) return
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          game_id: gameId,
+          source,
+          target,
+          relation
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to make a move')
+      }
+
+      const data = await response.json()
+      setGameData(data)
+
+      if (data.terminated) {
+        setGameOver(true)
+      }
+    } catch (err) {
+      console.error('Error making a move:', err)
+      setError(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading && !gameData) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Loading Game...</h2>
+            <p className="text-gray-600">Please wait while we set up your temporal adventure</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1">
+          <div className="max-w-6xl mx-auto p-8">
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+              {error}
+            </div>
+            <button 
+              onClick={() => {
+                setError(null)
+                startNewGame()
+              }}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1">
+        <div className="max-w-6xl mx-auto p-8">
+          <div className="flex items-center mb-8 gap-4">
+            <Link 
+              href="/" 
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+            >
+              ← Back to Home
+            </Link>
+            <h1 className="text-3xl font-semibold text-gray-800 text-center flex-1 pb-4 border-b border-gray-200">
+              Temporal Game
+            </h1>
+          </div>
+
+          <div className="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded-lg shadow-sm">
+            <div className="text-xl font-semibold text-gray-800">
+              Reward: {gameData?.reward || 0}
+            </div>
+            <button 
+              onClick={startNewGame}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+            >
+              New Game
+            </button>
+          </div>
+
+          {gameOver && (
+            <GameOver
+              score={gameData?.reward || 0}
+              onRestart={startNewGame}
+            />
+          )}
+
+          <div className="flex flex-col gap-6">
+            <TextDisplay
+              text={gameData?.text || ""}
+              entities={gameData?.entities || []}
+            />
+
+            <GameBoard
+              candidates={gameData?.candidates || []}
+              timeline={gameData?.timeline || []}
+              entities={gameData?.entities || []}
+              onMakeMove={handleMove}
+            />
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </main>
+  )
+} 
