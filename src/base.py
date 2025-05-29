@@ -206,6 +206,7 @@ class Timeline:
     def _compute_closure(relations: Set[PointRelation]) -> Set[PointRelation]:
         """Compute the closure of the relations."""
         dict_relations = [relation.to_dict() for relation in relations]
+        none_relations = [rel for rel in dict_relations if rel["relation"] == "-"]
 
         # Add the self relations
         unique_entities = set(
@@ -221,6 +222,7 @@ class Timeline:
         ]
 
         inferred_relations = _compute_point_temporal_closure(dict_relations)
+        inferred_relations += none_relations
 
         # Remove the self relations
         inferred_relations = [

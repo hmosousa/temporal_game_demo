@@ -2,7 +2,7 @@ import copy
 import math
 import random
 from dataclasses import dataclass
-from typing import Callable, Literal
+from typing import Literal
 
 import datasets
 import numpy as np

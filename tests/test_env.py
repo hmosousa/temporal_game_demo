@@ -9,5 +9,5 @@ class TestTemporalGameEnv:
     def test_reset(self):
         env = TemporalGameEnv()
         env.reset()
-        env.step(((0, 2), ">"))
+        env.step(((0, 2), "-"))
         assert env is not None
