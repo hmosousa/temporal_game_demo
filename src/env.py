@@ -247,8 +247,8 @@ class TemporalGameEnv:
     def __init__(
         self,
         level: int = 2,
-        level_lower_or_equal: bool = True,
-        closure: bool = False,
+        level_lower_or_equal: bool = False,
+        closure: bool = True,
         mode: Literal["train", "valid", "test"] = "test",
     ):
         self.mode = mode

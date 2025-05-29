@@ -13,19 +13,24 @@ export default function Game() {
   const [gameOver, setGameOver] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedLevel, setSelectedLevel] = useState(2)
 
   useEffect(() => {
     startNewGame()
   }, [])
 
-  const startNewGame = async () => {
+  const startNewGame = async (levelOverride = null) => {
     try {
       setLoading(true)
+      const levelToUse = levelOverride !== null ? levelOverride : selectedLevel
       const response = await fetch('/api/new_game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          level: levelToUse
+        })
       })
 
       if (!response.ok) {
@@ -77,6 +82,12 @@ export default function Game() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleLevelChange = (newLevel) => {
+    setSelectedLevel(newLevel)
+    // Auto-start new game with new level, passing it directly to avoid race condition
+    setTimeout(() => startNewGame(newLevel), 100)
   }
 
   if (loading && !gameData) {
@@ -134,12 +145,33 @@ export default function Game() {
           </div>
 
           <div className="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="text-xl font-semibold text-dark">
-              Reward: {gameData?.reward || 0}
+            <div className="flex items-center gap-6">
+              <div className="text-xl font-semibold text-dark">
+                Reward: {gameData?.reward || 0}
+              </div>
+              <div className="flex items-center gap-3">
+                <label htmlFor="level-select" className="text-sm font-medium text-gray-700">
+                  Level:
+                </label>
+                <select
+                  id="level-select"
+                  value={selectedLevel}
+                  onChange={(e) => handleLevelChange(parseInt(e.target.value))}
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  {[2, 3, 4, 5, 6].map(level => (
+                    <option key={level} value={level}>
+                      {level} {level === 2 ? '(Easy)' : level === 6 ? '(Hard)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <button 
               onClick={startNewGame}
               className="btn-primary"
+              disabled={loading}
             >
               New Game
             </button>

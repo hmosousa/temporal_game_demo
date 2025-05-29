@@ -27,8 +27,20 @@ games = {}
 @app.route("/api/new_game", methods=["POST"])
 def new_game():
     logger.info("Creating new game")
+    
+    # Get level from request data, default to 2
+    data = request.get_json() or {}
+    level = data.get("level", 2)
+    
+    # Validate level
+    if not isinstance(level, int) or level < 2 or level > 6:
+        logger.error(f"Invalid level: {level}")
+        return jsonify({"error": "Level must be an integer between 2 and 6"}), 400
+    
+    logger.info(f"Creating game with level: {level}")
+    
     game_id = str(uuid.uuid4())
-    game = TemporalGameEnv(mode="test", level=2, )
+    game = TemporalGameEnv(mode="test", level=level)
     obs, info = game.reset()
 
     games[game_id] = {"game": game, "obs": obs, "info": info, "reward": 0}
@@ -36,7 +48,7 @@ def new_game():
     # Store the game_id in the session
     session["game_id"] = game_id
 
-    logger.info(f"New game created with ID: {game_id}")
+    logger.info(f"New game created with ID: {game_id}, level: {level}")
 
     return jsonify(
         {
@@ -47,6 +59,7 @@ def new_game():
             "reward": 0,
             "terminated": False,
             "is_success": False,
+            "level": level,
         }
     )
 
