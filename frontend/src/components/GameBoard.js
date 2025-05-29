@@ -218,9 +218,17 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
   const getCellStyle = (rowEndpoint, colEndpoint, value, isMasked) => {
     if (isMasked || value === UNCLASSIFIED_POSITION) return {}
     
-    // For cells with relations, just add a subtle highlight
+    // Apply relation-specific colors matching the popup
+    const relationColors = {
+      1: '#cfe1f2', // Before - same as beforeOption
+      0: '#93c4de', // After - same as afterOption  
+      2: '#4b97ca', // Equal - same as equalOption
+      3: '#6b7280'  // Unknown - same as unknownOption
+    }
+    
     return {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: relationColors[value] || 'rgba(0, 0, 0, 0.05)',
+      color: '#000000',
       fontWeight: 'bold'
     }
   }

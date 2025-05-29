@@ -327,23 +327,6 @@
   border-radius: 0;
 }
 
-/* Add relation type specific background colors */
-.gridCell[data-relation="<"] {
-  background-color: rgba(0, 145, 190, 0.3);
-}
-
-.gridCell[data-relation=">"] {
-  background-color: rgba(100, 200, 235, 0.3);
-}
-
-.gridCell[data-relation="="] {
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.gridCell[data-relation="-"] {
-  background-color: rgba(107, 114, 128, 0.3);
-}
-
 .temporalIncoherence {
   border: 3px solid #ef4444;
   border-radius: 8px;
