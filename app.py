@@ -41,11 +41,12 @@ def new_game():
     return jsonify(
         {
             "game_id": game_id,
-            "text": obs["text"],
-            "entities": obs["entities"],
-            "candidates": obs["candidates"],
-            "timeline": obs["timeline"],
+            "text": obs["context"],
+            "board": obs["board"],
+            "endpoints": obs["endpoints"],
             "reward": 0,
+            "terminated": False,
+            "is_success": False,
         }
     )
 
@@ -62,15 +63,9 @@ def step():
     game_data = games[game_id]
     game = game_data["game"]
 
-    source = data["source"]
-    target = data["target"]
-    relation = data["relation"]
-
-    action = PointRelation(source=source, target=target, relation=relation)
-    logger.info(f"Game {game_id}: Action:\n{json.dumps(action.to_dict(), indent=4)}")
-
+    action = data["action"]
     try:
-        obs, reward, terminated, truncated, info = game.step(action)
+        obs, reward, terminated, info = game.step(action)
 
         # Update game data
         game_data["obs"] = obs
@@ -80,22 +75,15 @@ def step():
         logger.info(
             f"Game {game_id}: Step completed with reward={reward}, total reward={game_data['reward']}"
         )
-        logger.debug(f"Game {game_id}")
-        logger.debug(f"Timeline: {json.dumps(obs['timeline'], indent=4)}")
-        logger.debug(f"Candidates: {json.dumps(obs['candidates'], indent=4)}")
-        logger.debug(f"Entities: {json.dumps(obs['entities'], indent=4)}")
-        logger.debug(f"Terminated: {terminated}")
-        logger.debug(f"Truncated: {truncated}")
 
         return jsonify(
             {
-                "text": obs["text"],
-                "entities": obs["entities"],
-                "candidates": obs["candidates"],
-                "timeline": obs["timeline"],
+                "text": obs["context"],
+                "board": obs["board"],
+                "endpoints": obs["endpoints"],
                 "reward": game_data["reward"],
                 "terminated": terminated,
-                "truncated": truncated,
+                "is_success": info["is_success"],
             }
         )
     except Exception as e:

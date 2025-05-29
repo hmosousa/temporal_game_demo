@@ -73,6 +73,21 @@ class Game:
             "-": REWARD_ANNOTATED_CORRECT,
         }
 
+        entity_map = {}
+        for eid, entity in enumerate(doc["entities"]):
+            new_id = f"e{eid}"
+            entity_map[entity["id"]] = new_id
+            entity["id"] = new_id
+        
+        for rel in doc["relations"]:
+            old_src_id = rel["source"].split(" ")[1]
+            new_src_id = entity_map[old_src_id]
+            rel["source"] = rel["source"].replace(old_src_id, new_src_id)
+
+            old_tgt_id = rel["target"].split(" ")[1]
+            new_tgt_id = entity_map[old_tgt_id]
+            rel["target"] = rel["target"].replace(old_tgt_id, new_tgt_id)
+        
         self.true_doc = doc
         self.pred_doc = copy.deepcopy(self.true_doc)
         self.pred_doc["relations"] = []
