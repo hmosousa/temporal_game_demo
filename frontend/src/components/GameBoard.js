@@ -22,7 +22,7 @@ const RELATION_NAMES = {
 const UNCLASSIFIED_POSITION = -1
 const MASKED_POSITION = -2
 
-export default function GameBoard({ board, endpoints, onMakeMove, disabled = false, hasTemporalIncoherence = false }) {
+export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabled = false, hasTemporalIncoherence = false }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
@@ -222,6 +222,17 @@ export default function GameBoard({ board, endpoints, onMakeMove, disabled = fal
 
   return (
     <div className={getContainerClasses()}>
+      <div className={styles.boardHeader}>
+        <button 
+          onClick={onUndo}
+          className={styles.undoButton}
+          disabled={disabled}
+          title="Undo last move"
+        >
+          ↶ Undo
+        </button>
+      </div>
+      
       {hasTemporalIncoherence && (
         <div className={styles.incoherenceAlert}>
           <span className={styles.alertIcon}>⚠️</span>
@@ -319,6 +330,7 @@ GameBoard.propTypes = {
   board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)).isRequired,
   endpoints: PropTypes.arrayOf(PropTypes.string).isRequired,
   onMakeMove: PropTypes.func.isRequired,
+  onUndo: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
   hasTemporalIncoherence: PropTypes.bool,
 }

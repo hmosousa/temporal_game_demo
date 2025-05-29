@@ -49,6 +49,14 @@ class GameTracker:
     n_annotated: int = 0
     n_annotated_correct: int = 0
     new_relations: set = None
+    timeline_history: list = None
+    board_history: list = None
+    
+    def __post_init__(self):
+        if self.timeline_history is None:
+            self.timeline_history = []
+        if self.board_history is None:
+            self.board_history = []
 
 
 class Game:
@@ -120,12 +128,53 @@ class Game:
 
     def step(self, action: tuple[tuple[int, int], str]) -> tuple[dict, float, bool, bool, dict]:
         """Take a step in the game."""
+        # Save current state before making changes
+        self.save_state_for_undo()
+        
         self.tracker.step_id += 1
 
         self.state["board"] = self.update_board(action)
         terminated, is_success = self.terminated
         reward = self.compute_step_reward(terminated, is_success)
         return self.state, reward, terminated, is_success
+
+    def save_state_for_undo(self):
+        """Save current timeline and board state for undo functionality."""
+        # Deep copy the current timeline to preserve state
+        current_timeline_copy = Timeline(list(self.pred_timeline.relations))
+        self.tracker.timeline_history.append(current_timeline_copy)
+        
+        # Save current board state
+        current_board = self.make_board(self.pred_doc["relations"])
+        self.tracker.board_history.append(current_board)
+
+    def undo_last_action(self) -> bool:
+        """Undo the last action and restore previous state.
+        
+        Returns:
+            bool: True if undo was successful, False if no actions to undo
+        """
+        if not self.tracker.timeline_history or not self.tracker.board_history:
+            return False
+        
+        # Restore previous timeline state
+        previous_timeline = self.tracker.timeline_history.pop()
+        self.pred_timeline = previous_timeline
+        
+        # Restore previous board state
+        previous_board = self.tracker.board_history.pop()
+        
+        # Update pred_doc to match the restored timeline
+        self.pred_doc["relations"] = self.pred_timeline.to_dict()
+        
+        # Update the state with the restored board
+        self.state["board"] = previous_board
+        
+        # Decrement step counter
+        if self.tracker.step_id > 0:
+            self.tracker.step_id -= 1
+        
+        return True
 
     def init_state(self):
         context = add_tags(self.true_doc["text"], self.true_doc["entities"])
@@ -293,6 +342,25 @@ class TemporalGameEnv:
         obs, reward, terminated, is_success = self.game.step(action)
         info = self.get_info(terminated=terminated, is_success=is_success)
         return obs, reward, terminated, info
+
+    def undo(self):
+        """Undo the last action in the game.
+        
+        Returns:
+            tuple: (observation dict, info dict, success bool)
+        """
+        success = self.game.undo_last_action()
+        if success:
+            obs = self.game.state
+            terminated, is_success = self.game.terminated
+            info = self.get_info(terminated=terminated, is_success=is_success)
+            return obs, info, True
+        else:
+            # No actions to undo
+            obs = self.game.state
+            terminated, is_success = self.game.terminated
+            info = self.get_info(terminated=terminated, is_success=is_success)
+            return obs, info, False
 
     def _load_documents(
         self,

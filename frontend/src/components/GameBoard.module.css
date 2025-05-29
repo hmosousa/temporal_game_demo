@@ -8,6 +8,41 @@
   border-radius: 8px;
 }
 
+.boardHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.undoButton {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.undoButton:hover:not(:disabled) {
+  background-color: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.undoButton:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .gridContainer {
   margin-top: 1rem;
   overflow-x: auto;

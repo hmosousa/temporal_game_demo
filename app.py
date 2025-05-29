@@ -109,6 +109,50 @@ def step():
         return jsonify({"error": str(e)}), 400
 
 
+@app.route("/api/undo", methods=["POST"])
+def undo():
+    data = request.json
+    game_id = data.get("game_id", session.get("game_id"))
+
+    if not game_id or game_id not in games:
+        logger.error(f"Invalid game ID: {game_id}")
+        return jsonify({"error": "Invalid game ID"}), 400
+
+    game_data = games[game_id]
+    game_env = game_data["game"]
+
+    try:
+        obs, info, success = game_env.undo()
+
+        if not success:
+            logger.warning(f"Game {game_id}: No actions to undo")
+            return jsonify({"error": "No actions to undo"}), 400
+
+        # Update game data
+        game_data["obs"] = obs
+        game_data["info"] = info
+        # Note: We don't update reward on undo as the user might want to see cumulative score
+
+        logger.info(f"Game {game_id}: Undo successful")
+
+        response_data = {
+            "text": obs["context"],
+            "board": obs["board"],
+            "endpoints": obs["endpoints"],
+            "entities": obs["entities"],
+            "reward": game_data["reward"],  # Keep current total reward
+            "terminated": info["terminal_observation"],
+            "is_success": info["is_success"],
+            "undo_success": True
+        }
+        
+        return jsonify(response_data)
+    
+    except Exception as e:
+        logger.error(f"Game {game_id}: Error during undo: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 400
+
+
 if __name__ == "__main__":
     logger.info("Starting Temporal Game server")
     app.run(debug=True)

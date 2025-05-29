@@ -93,6 +93,41 @@ export default function Game() {
     }
   }
 
+  const handleUndo = async () => {
+    if (!gameId) return
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/undo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          game_id: gameId
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'No actions to undo')
+      }
+
+      const data = await response.json()
+      setGameData(data)
+
+      // If game was over but we undid, reset game over state
+      if (gameOver && !data.terminated) {
+        setGameOver(false)
+      }
+    } catch (err) {
+      console.error('Error during undo:', err)
+      setError(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLevelChange = (newLevel) => {
     // Ensure newLevel is a valid number
     if (typeof newLevel !== 'number' || newLevel < 2 || newLevel > 5) {
@@ -186,13 +221,15 @@ export default function Game() {
                 </div>
               </div>
             </div>
-            <button 
-              onClick={() => startNewGame()}
-              className="btn-primary"
-              disabled={loading}
-            >
-              New Game
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => startNewGame()}
+                className="btn-primary"
+                disabled={loading}
+              >
+                New Game
+              </button>
+            </div>
           </div>
 
           {gameOver && (
@@ -215,6 +252,7 @@ export default function Game() {
               board={gameData?.board || []}
               endpoints={gameData?.endpoints || []}
               onMakeMove={handleMove}
+              onUndo={handleUndo}
               disabled={loading}
               hasTemporalIncoherence={gameData?.terminated && !gameData?.is_success}
             />
