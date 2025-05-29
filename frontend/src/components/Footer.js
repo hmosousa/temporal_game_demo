@@ -23,15 +23,7 @@ export default function Footer() {
             Paper
           </a>
           <a
-            href="https://huggingface.co/liaad/PtVId"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
-          >
-            Model
-          </a>
-          <a
-            href="https://github.com/liaad/portuguese_vid"
+            href="https://github.com/hmosousa/temporal_game_demo/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
