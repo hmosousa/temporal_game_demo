@@ -172,7 +172,7 @@ export default function Game() {
               </div>
             </div>
             <button 
-              onClick={startNewGame}
+              onClick={() => startNewGame()}
               className="btn-primary"
               disabled={loading}
             >
