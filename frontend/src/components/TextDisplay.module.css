@@ -11,9 +11,10 @@
   padding: 1rem;
   background-color: white;
   border-radius: 6px;
-  border: 1px solid #eee;
+  border: 1px solid #e5e7eb;
   width: 100%;
   box-sizing: border-box;
+  color: #000000;
 }
 
 .entity {
@@ -21,11 +22,16 @@
   padding: 0.15rem 0.3rem;
   border-radius: 3px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
+  background-color: rgba(0, 145, 190, 0.1);
+  border: 1px solid rgba(0, 145, 190, 0.3);
+  color: #000000;
 }
 
 .entity:hover {
-  opacity: 0.8;
+  background-color: rgba(0, 145, 190, 0.2);
+  border-color: rgba(0, 145, 190, 0.5);
+  transform: translateY(-1px);
 }
 
 .sentence {
@@ -33,4 +39,5 @@
   margin-right: 0.1rem;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  color: #374151;
 }

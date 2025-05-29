@@ -86,7 +86,7 @@ export default function Game() {
       <main className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Loading Game...</h2>
+            <h2 className="text-2xl font-semibold text-dark mb-4">Loading Game...</h2>
             <p className="text-gray-600">Please wait while we set up your temporal adventure</p>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function Game() {
                 setError(null)
                 startNewGame()
               }}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              className="btn-primary"
             >
               Try Again
             </button>
@@ -130,18 +130,18 @@ export default function Game() {
             >
               ← Back to Home
             </Link>
-            <h1 className="text-3xl font-semibold text-gray-800 text-center flex-1 pb-4 border-b border-gray-200">
+            <h1 className="text-3xl font-semibold text-dark text-center flex-1 pb-4 border-b border-gray-200">
               Temporal Game
             </h1>
           </div>
 
-          <div className="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded-lg shadow-sm">
-            <div className="text-xl font-semibold text-gray-800">
+          <div className="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="text-xl font-semibold text-dark">
               Reward: {gameData?.reward || 0}
             </div>
             <button 
               onClick={startNewGame}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              className="btn-primary"
             >
               New Game
             </button>

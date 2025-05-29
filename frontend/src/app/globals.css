@@ -1,3 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0091BE;
+  --color-secondary: #64C8EB;
+  --color-dark: #000000;
+  --color-brand-blue: #0091BE;
+  --color-brand-light-blue: #64C8EB;
+  --color-brand-black: #000000;
+}
+
+:root {
+  --color-light-gray: #f8f9fa;
+  --color-medium-gray: #6c757d;
+}
+
+@layer base {
+  body {
+    color: var(--color-dark);
+    background-color: var(--color-light-gray);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#0091BE] hover:bg-[#007aa3] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+  }
+  
+  .btn-secondary {
+    @apply bg-[#64C8EB] hover:bg-[#4fb8dc] text-[#000000] font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-[#0091BE] to-[#64C8EB] bg-clip-text text-transparent;
+  }
+  
+  .text-primary {
+    @apply text-[#0091BE];
+  }
+  
+  .text-secondary {
+    @apply text-[#64C8EB];
+  }
+  
+  .text-dark {
+    @apply text-[#000000];
+  }
+}

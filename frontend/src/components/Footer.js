@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="w-full py-2 bg-white">
+    <footer className="w-full py-2 bg-white border-t border-gray-200">
       <div className="px-4 flex justify-between items-center">
         <p className="text-xs text-gray-500">
           Developed by{' '}
@@ -8,7 +8,7 @@ export default function Footer() {
             href="https://nlp.inesctec.pt"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-green-600 hover:text-green-700 transition-colors font-medium"
+            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
           >
             NLP&IR Research Group at INESC TEC
           </a>
@@ -18,7 +18,7 @@ export default function Footer() {
             href="https://arxiv.org/abs/2502.14394"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-green-600 hover:text-green-700 transition-colors font-medium"
+            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
           >
             Paper
           </a>
@@ -26,7 +26,7 @@ export default function Footer() {
             href="https://huggingface.co/liaad/PtVId"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-green-600 hover:text-green-700 transition-colors font-medium"
+            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
           >
             Model
           </a>
@@ -34,7 +34,7 @@ export default function Footer() {
             href="https://github.com/liaad/portuguese_vid"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-green-600 hover:text-green-700 transition-colors font-medium"
+            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
           >
             Code
           </a>

@@ -15,14 +15,14 @@ export default function Annotate() {
             >
               ← Back to Home
             </Link>
-            <h1 className="text-3xl font-semibold text-gray-800 text-center flex-1 pb-4 border-b border-gray-200">
+            <h1 className="text-3xl font-semibold text-dark text-center flex-1 pb-4 border-b border-gray-200">
               Annotation Tool
             </h1>
           </div>
 
-          <div className="text-center p-8 bg-gray-100 rounded-lg mt-8">
-            <p className="mb-4 text-lg text-gray-600">The annotation tool is coming soon!</p>
-            <p className="text-lg text-gray-600">This will allow you to manually annotate temporal relations in text.</p>
+          <div className="text-center p-8 bg-white rounded-lg mt-8 border border-gray-200 shadow-sm">
+            <p className="mb-4 text-lg text-gray-700">The annotation tool is coming soon!</p>
+            <p className="text-lg text-gray-700">This will allow you to manually annotate temporal relations in text.</p>
           </div>
         </div>
       </div>

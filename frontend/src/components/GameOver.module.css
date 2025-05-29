@@ -20,17 +20,20 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   width: 90%;
+  border: 1px solid #e5e7eb;
 }
 
 .container h2 {
   font-size: 1.8rem;
-  color: #333;
+  color: #000000;
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .container p {
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
+  color: #374151;
 }
 
 .restartBtn {
@@ -39,5 +42,16 @@
   font-size: 1.1rem;
   width: 100%;
   border-radius: 8px;
-  background-color: var(--primary-color);
+  background-color: #0091BE;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.restartBtn:hover {
+  background-color: #007aa3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 145, 190, 0.3);
 }

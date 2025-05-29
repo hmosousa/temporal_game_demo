@@ -1,15 +1,17 @@
 .selectorContainer {
   margin-top: 1.5rem;
   padding: 1.2rem;
-  background-color: #f2f2f2;
+  background-color: #ffffff;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .selectorContainer h3 {
   text-align: center;
   margin-bottom: 1rem;
+  color: #000000;
+  font-weight: 600;
 }
 
 .relationButtons {
@@ -25,25 +27,46 @@
   font-weight: 600;
   padding: 0.8rem;
   border-radius: 8px;
-  transition: transform 0.1s;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  color: white;
 }
 
 .relationBtn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .relationBtn:nth-child(1) {
-  background-color: #2196F3;
+  background-color: #0091BE;
+}
+
+.relationBtn:nth-child(1):hover {
+  background-color: #007aa3;
 }
 
 .relationBtn:nth-child(2) {
-  background-color: #FF9800;
+  background-color: #64C8EB;
+  color: #000000;
+}
+
+.relationBtn:nth-child(2):hover {
+  background-color: #4fb8dc;
 }
 
 .relationBtn:nth-child(3) {
-  background-color: #9C27B0;
+  background-color: #000000;
+}
+
+.relationBtn:nth-child(3):hover {
+  background-color: #333333;
 }
 
 .relationBtn:nth-child(4) {
-  background-color: #607D8B;
+  background-color: #6b7280;
+}
+
+.relationBtn:nth-child(4):hover {
+  background-color: #5b626e;
 }
