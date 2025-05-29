@@ -159,10 +159,10 @@ export default function Game() {
                       key={level}
                       onClick={() => handleLevelChange(level)}
                       disabled={loading}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors border ${
+                      className={`btn-primary text-sm py-2 px-4 ${
                         selectedLevel === level
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          ? 'bg-[#007aa3] shadow-lg -translate-y-0.5'
+                          : ''
                       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       {level}
