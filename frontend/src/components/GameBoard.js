@@ -106,6 +106,21 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
     return classes
   }
 
+  // Check if board is empty (no moves made)
+  const isBoardEmpty = useMemo(() => {
+    if (!board || board.length === 0) return true
+    
+    // Check if any cell has a relation (value other than UNCLASSIFIED_POSITION or MASKED_POSITION)
+    for (let row of board) {
+      for (let cell of row) {
+        if (cell !== UNCLASSIFIED_POSITION && cell !== MASKED_POSITION) {
+          return false
+        }
+      }
+    }
+    return true
+  }, [board])
+
   // Handle cell click to show relation options
   const handleCellClick = (originalRowIdx, originalColIdx, isMasked, e) => {
     if (disabled || isMasked) return // Don't allow interaction when disabled or with masked cells
@@ -226,8 +241,8 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
         <button 
           onClick={onUndo}
           className={styles.undoButton}
-          disabled={disabled}
-          title="Undo last move"
+          disabled={disabled || isBoardEmpty}
+          title={isBoardEmpty ? "No moves to undo" : "Undo last move"}
         >
           ↶ Undo
         </button>
