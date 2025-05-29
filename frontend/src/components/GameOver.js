@@ -8,7 +8,7 @@ export default function GameOver({ score, onRestart, userBoard, trueBoard, endpo
     <div className={styles.overlay}>
       <div className={styles.container}>
         <h2>Game Over</h2>
-        <p>Your final score: {score}</p>
+        <p>Final score: {score}</p>
         
         {userBoard && trueBoard && endpoints && (
           <div className={styles.comparisonContainer}>

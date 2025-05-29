@@ -143,7 +143,7 @@ export default function ComparisonBoard({ userBoard, trueBoard, endpoints }) {
     
     // Add red border for mismatches
     if (isMismatch(userValue, trueValue)) {
-      baseStyle.border = '2px solid #ef4444'
+      baseStyle.border = '1px solid #ef4444'
       baseStyle.backgroundColor = '#fee2e2'
     }
     
