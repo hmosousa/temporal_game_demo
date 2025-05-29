@@ -150,22 +150,25 @@ export default function Game() {
                 Reward: {gameData?.reward || 0}
               </div>
               <div className="flex items-center gap-3">
-                <label htmlFor="level-select" className="text-sm font-medium text-gray-700">
-                  Level:
+                <label className="text-sm font-medium text-gray-700">
+                  # Entities:
                 </label>
-                <select
-                  id="level-select"
-                  value={selectedLevel}
-                  onChange={(e) => handleLevelChange(parseInt(e.target.value))}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={loading}
-                >
-                  {[2, 3, 4, 5, 6].map(level => (
-                    <option key={level} value={level}>
-                      {level} {level === 2 ? '(Easy)' : level === 6 ? '(Hard)' : ''}
-                    </option>
+                <div className="flex gap-2">
+                  {[2, 3, 4, 5].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => handleLevelChange(level)}
+                      disabled={loading}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors border ${
+                        selectedLevel === level
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {level}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             </div>
             <button 
