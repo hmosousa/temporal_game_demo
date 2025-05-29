@@ -10,10 +10,17 @@ export async function POST(request) {
       body: JSON.stringify(body)
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      return Response.json({ error: errorData.error || `Backend returned ${response.status}` }, { status: response.status });
+    }
 
+    const data = await response.json();
     return Response.json(data);
   } catch (error) {
-    return Response.json({ error: 'Failed to connect to game server' }, { status: 500 });
+    console.error('Backend connection error:', error);
+    return Response.json({ 
+      error: `Failed to connect to game server: ${error.message}` 
+    }, { status: 500 });
   }
 }

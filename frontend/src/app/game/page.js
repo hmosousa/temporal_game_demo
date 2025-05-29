@@ -22,7 +22,16 @@ export default function Game() {
   const startNewGame = async (levelOverride = null) => {
     try {
       setLoading(true)
-      const levelToUse = levelOverride !== null ? levelOverride : selectedLevel
+      
+      // Ensure levelOverride is a valid number or null
+      const validLevelOverride = (typeof levelOverride === 'number') ? levelOverride : null
+      const levelToUse = validLevelOverride !== null ? validLevelOverride : selectedLevel
+      
+      // Ensure levelToUse is a valid number
+      if (typeof levelToUse !== 'number' || levelToUse < 2 || levelToUse > 5) {
+        throw new Error(`Invalid level: ${levelToUse}`)
+      }
+      
       const response = await fetch('/api/new_game', {
         method: 'POST',
         headers: {
@@ -85,6 +94,12 @@ export default function Game() {
   }
 
   const handleLevelChange = (newLevel) => {
+    // Ensure newLevel is a valid number
+    if (typeof newLevel !== 'number' || newLevel < 2 || newLevel > 5) {
+      console.error('Invalid level:', newLevel)
+      return
+    }
+    
     setSelectedLevel(newLevel)
     // Auto-start new game with new level, passing it directly to avoid race condition
     setTimeout(() => startNewGame(newLevel), 100)
