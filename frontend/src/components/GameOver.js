@@ -1,7 +1,7 @@
 'use client'
 
 import styles from './GameOver.module.css'
-import GameBoard from './GameBoard'
+import ComparisonBoard from './ComparisonBoard'
 
 export default function GameOver({ score, onRestart, userBoard, trueBoard, endpoints }) {
   return (
@@ -11,29 +11,28 @@ export default function GameOver({ score, onRestart, userBoard, trueBoard, endpo
         <p>Your final score: {score}</p>
         
         {userBoard && trueBoard && endpoints && (
-          <div className={styles.boardsContainer}>
-            <div className={styles.boardSection}>
-              <h3>Your Timeline</h3>
-              <div className={styles.boardWrapper}>
-                <GameBoard
-                  board={userBoard}
-                  endpoints={endpoints}
-                  onMakeMove={() => {}} // Disabled for game over
-                  disabled={true}
-                />
+          <div className={styles.comparisonContainer}>
+            <h3>Timeline Comparison</h3>
+            <div className={styles.legend}>
+              <div className={styles.legendItem}>
+                <span className={styles.centerSymbol}>&gt;</span>
+                <span>Prediction</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.bottomRightSymbol}>&lt;</span>
+                <span>Annotated</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.mismatchBox}></span>
+                <span>Mismatch</span>
               </div>
             </div>
-            
-            <div className={styles.boardSection}>
-              <h3>Annotated Timeline</h3>
-              <div className={styles.boardWrapper}>
-                <GameBoard
-                  board={trueBoard}
-                  endpoints={endpoints}
-                  onMakeMove={() => {}} // Disabled for game over
-                  disabled={true}
-                />
-              </div>
+            <div className={styles.boardWrapper}>
+              <ComparisonBoard
+                userBoard={userBoard}
+                trueBoard={trueBoard}
+                endpoints={endpoints}
+              />
             </div>
           </div>
         )}

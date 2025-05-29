@@ -1,0 +1,175 @@
+/* Base styles similar to GameBoard but with comparison-specific modifications */
+
+.boardContainer {
+  padding: 1.5rem;
+  background-color: #ffffff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.gridContainer {
+  margin-top: 1rem;
+  overflow-x: auto;
+  flex-grow: 1;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+}
+
+.gridTable {
+  border-collapse: separate;
+  border-spacing: 2px;
+  min-width: 200px;
+  margin: 0;
+}
+
+.gridTable th, .gridTable td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.gridTable th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  color: #000000;
+}
+
+.topLeftCell {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.entityLabel {
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #000000;
+}
+
+.rowEntityLabel {
+  composes: entityLabel;
+  height: 40px; /* Same as grid cell height */
+  width: 150px; /* Width for the row labels */
+  vertical-align: middle;
+  text-align: right;
+  padding-right: 10px;
+  display: flex; /* Add flex display */
+  justify-content: flex-end; /* Right align content */
+  align-items: center; /* Center vertically */
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.rowEntityLabel .endpointDisplay {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.columnEntityLabel {
+  composes: entityLabel;
+  width: 40px; /* Same as grid cell width */
+  height: 150px; /* Give more space for the rotated text */
+  position: relative;
+  text-align: left;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.columnEntityLabel .endpointDisplay {
+  transform: rotate(-90deg);
+  position: absolute;
+  left: 0;
+  right: 0;
+  white-space: nowrap;
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 0;
+  margin-top: auto;
+  bottom: 20px;
+}
+
+.gridCell {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  font-weight: bold;
+  position: relative;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  padding: 0;
+}
+
+.disabled {
+  opacity: 0;
+  pointer-events: none;
+  cursor: default;
+}
+
+.endpointDisplay {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  background-color: inherit;
+  border-radius: inherit;
+  padding: 2px 6px;
+  font-weight: 600;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.endpointType {
+  font-size: 0.7rem;
+  color: #374151;
+  font-weight: bold;
+}
+
+.entityTextDisplay {
+  font-size: 0.85rem;
+  color: #000000;
+  font-weight: 600;
+}
+
+/* Comparison-specific styles */
+
+.cellContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.userPrediction {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #000000;
+  z-index: 2;
+  position: relative;
+  pointer-events: none;
+}
+
+.trueAnnotation {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: #059669;
+  background-color: transparent;
+  padding: 1px 3px;
+  border-radius: 2px;
+  z-index: 3;
+  line-height: 1;
+  pointer-events: none;
+} 
