@@ -1,0 +1,51 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "doc": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "entities": [
+      {
+        "id": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "offsets": {
+          "feature": {
+            "dtype": "int64",
+            "_type": "Value"
+          },
+          "_type": "Sequence"
+        },
+        "text": {
+          "dtype": "string",
+          "_type": "Value"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "relation": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "source": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "target": {
+          "dtype": "string",
+          "_type": "Value"
+        }
+      }
+    ]
+  },
+  "homepage": "",
+  "license": ""
+}

@@ -1,63 +1,108 @@
 import json
-import re
+import json.scanner
+import logging
+import os
+import uuid
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request, session
 
-from src.utils import highlight_entities, build_entities_dict
-from src.temporal_closure import Timeline
-from src.constants import ASSETS_DIR
+from src.base import PointRelation
+from src.env import TemporalGame
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(), logging.FileHandler("temporal_game.log")],
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "temporal_game_secret")
+
+# Dictionary to store game instances
+games = {}
 
 
-def order_entities_by_appearance(context, entities):
-    entity_positions = {}
-    for entity in entities:
-        match = re.search(f"<{entity}>(.*?)</{entity}>", context)
-        if match:
-            entity_positions[entity] = match.start()
+@app.route("/api/new_game", methods=["POST"])
+def new_game():
+    logger.info("Creating new game")
+    game_id = str(uuid.uuid4())
+    game = TemporalGame(mode="test", level=None)
+    obs, info = game.reset()
 
-    return sorted(entities, key=lambda e: entity_positions.get(e, float("inf")))
+    games[game_id] = {"game": game, "obs": obs, "info": info, "reward": 0}
 
+    # Store the game_id in the session
+    session["game_id"] = game_id
 
-def _build_data(data):
-    data["eid2name"] = build_entities_dict(data["context"])
-    data["ordered_entities"] = order_entities_by_appearance(
-        data["context"], data["entities"]
+    logger.info(f"New game created with ID: {game_id}")
+
+    return jsonify(
+        {
+            "game_id": game_id,
+            "text": obs["text"],
+            "entities": obs["entities"],
+            "candidates": obs["candidates"],
+            "timeline": obs["timeline"],
+            "reward": 0,
+        }
     )
-    data["context"] = highlight_entities(data["context"])
-    return data
 
 
-@app.route("/")
-def index():
-    with open(ASSETS_DIR / "sample_data.json", "r") as f:
-        data = json.load(f)
-    data = _build_data(data)
-    return render_template("index.html", data=data)
-
-
-@app.route("/api/data", methods=["GET"])
-def get_context():
-    with open(ASSETS_DIR / "sample_data.json", "r") as f:
-        data = json.load(f)
-    data = _build_data(data)
-    return jsonify(data)
-
-
-@app.route("/api/temporal_closure", methods=["POST"])
-def temporal_closure():
+@app.route("/api/step", methods=["POST"])
+def step():
     data = request.json
-    relations = data.get("timeline", [])
-    app.logger.info(f"Received relations: {relations}")
+    game_id = data.get("game_id", session.get("game_id"))
 
-    timeline = Timeline.from_relations(relations)
-    closed_timeline = timeline.closure()  # Compute the temporal closure
-    closed_relations = closed_timeline.to_dict()
-    app.logger.info(f"Computed timeline: {closed_relations}")
+    if not game_id or game_id not in games:
+        logger.error(f"Invalid game ID: {game_id}")
+        return jsonify({"error": "Invalid game ID"}), 400
 
-    return jsonify({"timeline": closed_relations})
+    game_data = games[game_id]
+    game = game_data["game"]
+
+    source = data["source"]
+    target = data["target"]
+    relation = data["relation"]
+
+    action = PointRelation(source=source, target=target, relation=relation)
+    logger.info(f"Game {game_id}: Action:\n{json.dumps(action.to_dict(), indent=4)}")
+
+    try:
+        obs, reward, terminated, truncated, info = game.step(action)
+
+        # Update game data
+        game_data["obs"] = obs
+        game_data["info"] = info
+        game_data["reward"] += reward
+
+        logger.info(
+            f"Game {game_id}: Step completed with reward={reward}, total reward={game_data['reward']}"
+        )
+        logger.debug(f"Game {game_id}")
+        logger.debug(f"Timeline: {json.dumps(obs['timeline'], indent=4)}")
+        logger.debug(f"Candidates: {json.dumps(obs['candidates'], indent=4)}")
+        logger.debug(f"Entities: {json.dumps(obs['entities'], indent=4)}")
+        logger.debug(f"Terminated: {terminated}")
+        logger.debug(f"Truncated: {truncated}")
+
+        return jsonify(
+            {
+                "text": obs["text"],
+                "entities": obs["entities"],
+                "candidates": obs["candidates"],
+                "timeline": obs["timeline"],
+                "reward": game_data["reward"],
+                "terminated": terminated,
+                "truncated": truncated,
+            }
+        )
+    except Exception as e:
+        logger.error(f"Game {game_id}: Error during step: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 400
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    logger.info("Starting Temporal Game server")
+    app.run(debug=True)

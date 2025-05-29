@@ -1,0 +1,36 @@
+.textContainer {
+  height: 100%;
+}
+
+.textContent {
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-size: 1rem;
+  overflow-y: auto;
+  max-height: 60vh;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.entity {
+  font-weight: 600;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.entity:hover {
+  opacity: 0.8;
+}
+
+.sentence {
+  display: inline;
+  margin-right: 0.1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

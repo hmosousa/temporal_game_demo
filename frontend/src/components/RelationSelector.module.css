@@ -1,0 +1,49 @@
+.selectorContainer {
+  margin-top: 1.5rem;
+  padding: 1.2rem;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.selectorContainer h3 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.relationButtons {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.relationBtn {
+  flex: 1;
+  min-width: 100px;
+  font-weight: 600;
+  padding: 0.8rem;
+  border-radius: 8px;
+  transition: transform 0.1s;
+}
+
+.relationBtn:hover {
+  transform: translateY(-2px);
+}
+
+.relationBtn:nth-child(1) {
+  background-color: #2196F3;
+}
+
+.relationBtn:nth-child(2) {
+  background-color: #FF9800;
+}
+
+.relationBtn:nth-child(3) {
+  background-color: #9C27B0;
+}
+
+.relationBtn:nth-child(4) {
+  background-color: #607D8B;
+}
