@@ -303,18 +303,18 @@
 }
 
 .beforeOption {
-  color: white;
-  background-color: #0091BE;
+  color: #000000;
+  background-color: #cfe1f2;
 }
 
 .afterOption {
   color: #000000;
-  background-color: #64C8EB;
+  background-color: #93c4de;
 }
 
 .equalOption {
-  color: white;
-  background-color: #000000;
+  color: #000000;
+  background-color: #4b97ca;
 }
 
 .unknownOption {
