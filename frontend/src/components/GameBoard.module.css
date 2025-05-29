@@ -10,8 +10,7 @@
 
 .boardHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
   margin-bottom: 1rem;
 }
 
@@ -389,10 +388,4 @@
   100% {
     transform: translateX(2px);
   }
-}
-
-.scoreDisplay {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
 }

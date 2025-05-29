@@ -250,7 +250,6 @@ export default function Game() {
               endpoints={gameData?.endpoints || []}
               onMakeMove={handleMove}
               onUndo={handleUndo}
-              score={gameData?.reward || 0}
               disabled={loading}
               hasTemporalIncoherence={gameData?.terminated && !gameData?.is_success}
             />
