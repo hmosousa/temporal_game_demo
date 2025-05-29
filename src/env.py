@@ -327,6 +327,5 @@ class TemporalGameEnv:
             "terminal_observation": terminated,
         }
         if terminated:
-            info["true_timeline"] = self.game.true_timeline
-            info["pred_timeline"] = self.game.pred_timeline
+            info["true_board"] = self.game.make_board(self.game.true_doc["relations"])
         return info

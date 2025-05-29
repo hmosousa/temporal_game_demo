@@ -162,7 +162,7 @@ export default function Game() {
           <div className="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-6">
               <div className="text-xl font-semibold text-dark">
-                Reward: {gameData?.reward || 0}
+                Score: {gameData?.reward || 0}
               </div>
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">
@@ -199,6 +199,9 @@ export default function Game() {
             <GameOver
               score={gameData?.reward || 0}
               onRestart={startNewGame}
+              userBoard={gameData?.board}
+              trueBoard={gameData?.true_board}
+              endpoints={gameData?.endpoints}
             />
           )}
 

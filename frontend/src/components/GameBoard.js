@@ -22,7 +22,7 @@ const RELATION_NAMES = {
 const UNCLASSIFIED_POSITION = -1
 const MASKED_POSITION = -2
 
-export default function GameBoard({ board, endpoints, onMakeMove }) {
+export default function GameBoard({ board, endpoints, onMakeMove, disabled = false }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
@@ -99,7 +99,7 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
 
   // Handle cell click to show relation options
   const handleCellClick = (originalRowIdx, originalColIdx, isMasked, e) => {
-    if (isMasked) return // Don't allow interaction with masked cells
+    if (disabled || isMasked) return // Don't allow interaction when disabled or with masked cells
     
     if (e) {
       const rect = e.currentTarget.getBoundingClientRect()
@@ -161,11 +161,15 @@ export default function GameBoard({ board, endpoints, onMakeMove }) {
       return classes.join(' ')
     }
     
+    if (disabled) {
+      classes.push(styles.readonly)
+    }
+    
     if (value !== UNCLASSIFIED_POSITION) {
       classes.push(styles.active)
     }
     
-    if (isSelected) {
+    if (isSelected && !disabled) {
       classes.push(styles.selected)
     }
     
@@ -299,4 +303,5 @@ GameBoard.propTypes = {
   board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)).isRequired,
   endpoints: PropTypes.arrayOf(PropTypes.string).isRequired,
   onMakeMove: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 }

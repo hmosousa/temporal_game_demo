@@ -27,18 +27,18 @@ games = {}
 @app.route("/api/new_game", methods=["POST"])
 def new_game():
     logger.info("Creating new game")
-    
+
     # Get level from request data, default to 2
     data = request.get_json() or {}
     level = data.get("level", 3)
-    
+
     # Validate level
     if not isinstance(level, int) or level < 2 or level > 5:
         logger.error(f"Invalid level: {level}")
         return jsonify({"error": "Level must be an integer between 2 and 6"}), 400
-    
+
     logger.info(f"Creating game with level: {level}")
-    
+
     game_id = str(uuid.uuid4())
     game = TemporalGameEnv(mode="test", level=level)
     obs, info = game.reset()
@@ -90,17 +90,20 @@ def step():
             f"Game {game_id}: Step completed with reward={reward}, total reward={game_data['reward']}"
         )
 
-        return jsonify(
-            {
-                "text": obs["context"],
-                "board": obs["board"],
-                "endpoints": obs["endpoints"],
-                "entities": obs["entities"],
-                "reward": game_data["reward"],
-                "terminated": terminated,
-                "is_success": info["is_success"],
-            }
-        )
+        data = {
+            "text": obs["context"],
+            "board": obs["board"],
+            "endpoints": obs["endpoints"],
+            "entities": obs["entities"],
+            "reward": game_data["reward"],
+            "terminated": terminated,
+            "is_success": info["is_success"],
+        }
+        
+        if terminated:
+            data["true_board"] = info["true_board"]
+        return jsonify(data)
+    
     except Exception as e:
         logger.error(f"Game {game_id}: Error during step: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 400

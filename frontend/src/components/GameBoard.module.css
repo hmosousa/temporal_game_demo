@@ -145,6 +145,17 @@
   cursor: default;
 }
 
+.readonly {
+  cursor: default;
+  pointer-events: none;
+}
+
+.readonly:hover {
+  transform: none;
+  box-shadow: none;
+  border-width: 1px;
+}
+
 .endpointDisplay {
   display: flex;
   align-items: baseline;
