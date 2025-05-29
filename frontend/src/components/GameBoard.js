@@ -22,7 +22,7 @@ const RELATION_NAMES = {
 const UNCLASSIFIED_POSITION = -1
 const MASKED_POSITION = -2
 
-export default function GameBoard({ board, endpoints, onMakeMove, disabled = false }) {
+export default function GameBoard({ board, endpoints, onMakeMove, disabled = false, hasTemporalIncoherence = false }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
@@ -96,6 +96,15 @@ export default function GameBoard({ board, endpoints, onMakeMove, disabled = fal
 
     return { visibleRows, visibleColumnIndices, visibleEndpoints }
   }, [board, endpoints])
+
+  // Add temporal incoherence styling
+  const getContainerClasses = () => {
+    let classes = styles.boardContainer
+    if (hasTemporalIncoherence) {
+      classes += ` ${styles.temporalIncoherence}`
+    }
+    return classes
+  }
 
   // Handle cell click to show relation options
   const handleCellClick = (originalRowIdx, originalColIdx, isMasked, e) => {
@@ -212,7 +221,14 @@ export default function GameBoard({ board, endpoints, onMakeMove, disabled = fal
   }
 
   return (
-    <div className={styles.boardContainer}>
+    <div className={getContainerClasses()}>
+      {hasTemporalIncoherence && (
+        <div className={styles.incoherenceAlert}>
+          <span className={styles.alertIcon}>⚠️</span>
+          <span>Temporal Incoherence Detected! The timeline contains contradictory relations.</span>
+        </div>
+      )}
+      
       <div className={styles.gridContainer}>
         <table className={styles.gridTable}>
           <thead>
@@ -304,4 +320,5 @@ GameBoard.propTypes = {
   endpoints: PropTypes.arrayOf(PropTypes.string).isRequired,
   onMakeMove: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
+  hasTemporalIncoherence: PropTypes.bool,
 }

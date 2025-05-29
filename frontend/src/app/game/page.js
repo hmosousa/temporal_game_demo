@@ -215,6 +215,8 @@ export default function Game() {
               board={gameData?.board || []}
               endpoints={gameData?.endpoints || []}
               onMakeMove={handleMove}
+              disabled={loading}
+              hasTemporalIncoherence={gameData?.terminated && !gameData?.is_success}
             />
           </div>
         </div>
