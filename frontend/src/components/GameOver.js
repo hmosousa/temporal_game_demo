@@ -15,7 +15,7 @@ export default function GameOver({ score, onRestart, userBoard, trueBoard, endpo
             <h3>Timeline Comparison</h3>
             <div className={styles.legend}>
               <div className={styles.legendItem}>
-                <span className={styles.centerSymbol}>&gt;</span>
+                <span className={styles.centerSymbol}>&lt;</span>
                 <span>Prediction</span>
               </div>
               <div className={styles.legendItem}>
