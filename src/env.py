@@ -140,8 +140,8 @@ class Game:
 
     def update_board(self, action):
         """Update the environment state based on the action."""
-        position, relation = action
-        src_endpoint, tgt_endpoint = self.idx2edp_pair[position]
+        [src_idx, tgt_idx], relation = action
+        src_endpoint, tgt_endpoint = self.idx2edp_pair[(src_idx, tgt_idx)]
 
         # Add the new relation
         relation = PointRelation(
@@ -168,7 +168,7 @@ class Game:
 
         # Update board state
         board = self.make_board(self.pred_doc["relations"])
-        return board.tolist()
+        return board
 
     def make_board(self, relations=None):
         """Make the state of the environment."""
@@ -228,8 +228,8 @@ class Game:
     @property
     def all_classified(self):
         """True if all the positions are classified. Otherwise False."""
-        for idx in self.idx2edp_pair.keys():
-            if self.state["board"][idx] == UNCLASSIFIED_POSITION:
+        for [src_idx, tgt_idx] in self.idx2edp_pair.keys():
+            if self.state["board"][src_idx][tgt_idx] == UNCLASSIFIED_POSITION:
                 return False
         return True
 
