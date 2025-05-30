@@ -23,12 +23,6 @@ export default function Home() {
               Game
             </Link>
             <Link 
-              href="/rules" 
-              className="btn-primary w-40 text-center block bg-green-600 hover:bg-green-700"
-            >
-              How to Play
-            </Link>
-            <Link 
               href="/annotate" 
               className="btn-primary w-40 text-center block"
             >
