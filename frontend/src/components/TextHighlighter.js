@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { generateEntityColor, getDarkerEntityColor, extractEntityId } from '../utils/entityColors'
 
 const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) => {
   const [hoveredEntity, setHoveredEntity] = useState(null)
   const [editingEntity, setEditingEntity] = useState(null)
   const textRef = useRef(null)
 
-  // Sort entities by start position for proper rendering
-  const sortedEntities = [...entities].sort((a, b) => a.start - b.start)
+  // Sort entities by start position for proper rendering and color assignment
+  const sortedEntities = useMemo(() => {
+    return [...entities].sort((a, b) => a.start - b.start)
+  }, [entities])
 
   const handleMouseUp = useCallback(() => {
     if (!textRef.current) return
@@ -95,16 +98,23 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
       const isHovered = hoveredEntity === entity.id
       const isEditing = editingEntity === entity.id
 
-      // Determine entity styling based on type and whether it's DCT
+      // Determine entity styling based on type and use consistent colors
+      // Use the position in the sorted array for color assignment
+      const entityId = `e${idx}`;
+      
+      const entityBgColor = generateEntityColor(entityId)
+      const entityBorderColor = getDarkerEntityColor(entityId)
+      
       let entityClass = 'relative inline-block px-1 rounded cursor-pointer transition-all '
-      if (entity.type === 'instant') {
-        entityClass += 'bg-purple-200 border-b-2 border-purple-400'
-      } else {
-        entityClass += 'bg-blue-200 border-b-2 border-blue-400'
-      }
+      entityClass += 'border-b-2'
       
       if (isHovered) {
         entityClass += ' shadow-lg scale-105'
+      }
+
+      const entityStyle = {
+        backgroundColor: entityBgColor,
+        borderColor: entityBorderColor
       }
 
       segments.push(
@@ -117,6 +127,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
             e.stopPropagation()
             setEditingEntity(entity.id)
           }}
+          style={entityStyle}
         >
           {entityText}
           
