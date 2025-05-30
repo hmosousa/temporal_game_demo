@@ -3,11 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 
 const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) => {
-  const [selectedRange, setSelectedRange] = useState(null)
-  const [isSelecting, setIsSelecting] = useState(false)
   const [hoveredEntity, setHoveredEntity] = useState(null)
   const [editingEntity, setEditingEntity] = useState(null)
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
   const textRef = useRef(null)
 
   // Sort entities by start position for proper rendering
@@ -48,26 +45,18 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
       return
     }
 
-    setSelectedRange({ start, end, text: selectedText })
-    setShowCreateDialog(true)
-    selection.removeAllRanges()
-  }, [entities])
-
-  const createEntity = (type = 'interval') => {
-    if (!selectedRange) return
-
+    // Directly create the entity with default 'interval' type
     const newEntity = {
-      start: selectedRange.start,
-      end: selectedRange.end,
-      text: selectedRange.text,
-      type: type,
+      start: start,
+      end: end,
+      text: selectedText,
+      type: 'interval', // Default to interval
       id: Date.now() // Simple ID generation
     }
 
     onEntitiesChange([...entities, newEntity])
-    setSelectedRange(null)
-    setShowCreateDialog(false)
-  }
+    selection.removeAllRanges()
+  }, [entities, onEntitiesChange])
 
   const updateEntity = (entityId, updates) => {
     const updatedEntities = entities.map(entity =>
@@ -182,7 +171,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           </button>
           {/* Tooltip */}
           <div className="absolute right-0 top-8 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-            Select text with your mouse to create new entities. Click on highlighted entities to edit them.
+            Select text with your mouse to automatically create entities (defaults to 'interval'). Click on highlighted entities to edit their type or position.
             <div className="absolute -top-1 right-3 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
           </div>
         </div>
@@ -196,57 +185,6 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           {renderTextWithEntities()}
         </div>
       </div>
-
-      {/* Create Entity Dialog */}
-      {showCreateDialog && selectedRange && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Create Entity</h3>
-            
-            <div className="mb-4">
-              <div className="text-sm text-gray-600 mb-2">Selected text:</div>
-              <div className="bg-gray-100 p-3 rounded border font-medium">
-                "{selectedRange.text}"
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Position: {selectedRange.start}-{selectedRange.end}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="text-sm text-gray-600 mb-3">Entity type:</div>
-              <div className="space-y-2">
-                <button
-                  onClick={() => createEntity('interval')}
-                  className="w-full p-3 text-left border rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  <div className="font-medium text-blue-700">Interval</div>
-                  <div className="text-sm text-gray-600">Events or states with duration</div>
-                </button>
-                <button
-                  onClick={() => createEntity('instant')}
-                  className="w-full p-3 text-left border rounded-lg hover:bg-purple-50 transition-colors"
-                >
-                  <div className="font-medium text-purple-700">Instant</div>
-                  <div className="text-sm text-gray-600">Point-in-time events</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setSelectedRange(null)
-                  setShowCreateDialog(false)
-                }}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Edit Entity Dialog */}
       {editingEntity && (
