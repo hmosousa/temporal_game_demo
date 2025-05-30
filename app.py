@@ -182,41 +182,20 @@ def new_annotation_session():
         # Create a mock document structure that matches what TemporalGame expects
         mock_doc = {
             "text": text,
-            "entities": [],
-            "relations": [],  # Start with no relations
-        }
-
-        # Convert entities to the format expected by the game
-        for i, entity in enumerate(entities):
-            # Skip DCT entities for the game board
-            if entity.get("isDCT"):
-                continue
-
-            game_entity = {
+            "entities": [
+                {
                 "id": f"e{i}",
                 "text": entity.get("text", text[entity["start"] : entity["end"]]),
-                "start": entity["start"],
-                "end": entity["end"],
-                "type": entity.get("type", "interval"),
+                "offsets": [entity["start"], entity["end"]],
             }
-            mock_doc["entities"].append(game_entity)
-
-        # Initialize game with the mock document directly
-
-        # Manually create a Game instance with our custom document
-
-        game = TemporalGame(mock_doc)
-
-        obs = game.state
-        info = {
-            "doc_id": -1,
-            "n_inferred": 0,
-            "n_annotated": 0,
-            "n_annotated_correct": 0,
-            "is_success": False,
-            "terminal_observation": False,
-            "has_incoherence": False,
+            for i, entity in enumerate(entities)
+        ],
+            "relations": [], 
         }
+
+        # Create TemporalGame instance directly with our custom document
+        game = TemporalGame(mock_doc)
+        obs, info = game.reset()
 
         annotation_sessions[session_id] = {
             "game": game,
@@ -264,7 +243,7 @@ def annotation_step():
     action = data["action"]
     try:
         # For annotation mode, we don't care about termination on errors
-        obs, reward, terminated, info = game.step(action)
+        obs, _, _, info = game.step(action)
 
         # Update session data
         session_data["obs"] = obs
@@ -276,14 +255,14 @@ def annotation_step():
             {
                 "position": position,
                 "relation": relation,
-                "timestamp": obs.get("step_count", len(session_data["relations"])),
+                "timestamp": len(session_data["relations"]),
             }
         )
 
         logger.info(f"Annotation session {session_id}: Step completed")
 
         # Check for temporal incoherence (but don't terminate)
-        has_incoherence = info.get("has_incoherence", False)
+        has_incoherence = not game.pred_timeline.is_valid
 
         response_data = {
             "board": obs["board"],
@@ -313,10 +292,10 @@ def annotation_undo():
         return jsonify({"error": "Invalid annotation session ID"}), 400
 
     session_data = annotation_sessions[session_id]
-    game_env = session_data["game"]
+    game = session_data["game"]
 
     try:
-        obs, info, success = game_env.undo()
+        obs, info, success = game.undo()
 
         if not success:
             logger.warning(f"Annotation session {session_id}: No actions to undo")
@@ -332,7 +311,7 @@ def annotation_undo():
 
         logger.info(f"Annotation session {session_id}: Undo successful")
 
-        has_incoherence = info.get("has_incoherence", False)
+        has_incoherence = not game.pred_timeline.is_valid
 
         response_data = {
             "board": obs["board"],

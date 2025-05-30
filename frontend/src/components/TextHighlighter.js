@@ -259,47 +259,6 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
         />
       )}
 
-      {/* Entity Summary */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="font-medium text-gray-800 mb-3">
-          Entities ({entities.length})
-        </h3>
-        {entities.length === 0 ? (
-          <p className="text-gray-500 text-sm">No entities created yet. Select text to create your first entity.</p>
-        ) : (
-          <div className="space-y-2">
-            {sortedEntities.map((entity, idx) => (
-              <div key={entity.id || idx} className="flex items-center justify-between p-2 bg-white rounded border">
-                <div className="flex-1">
-                  <span className="font-medium text-gray-800">
-                    "{entity.text || text.substring(entity.start, entity.end)}"
-                  </span>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {entity.start}-{entity.end} • {entity.isDCT ? 'DCT' : entity.type}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    entity.isDCT
-                      ? 'bg-green-100 text-green-700'
-                      : entity.type === 'instant' 
-                      ? 'bg-purple-100 text-purple-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {entity.isDCT ? 'DCT' : entity.type}
-                  </span>
-                  <button
-                    onClick={() => setEditingEntity(entity.id)}
-                    className="text-blue-600 hover:text-blue-800 text-xs"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

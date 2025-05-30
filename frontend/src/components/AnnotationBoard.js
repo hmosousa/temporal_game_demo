@@ -256,25 +256,7 @@ const AnnotationBoard = ({
               </div>
             )}
           </div>
-          <button
-            onClick={exportAnnotations}
-            disabled={relationsCount === 0}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              relationsCount > 0
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            📥 Export Relations
-          </button>
-        </div>
-      </div>
 
-      {/* Annotation Instructions */}
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-        <div className="text-sm text-blue-700">
-          <strong>Annotation Mode:</strong> Click on grid cells to define temporal relations between entity endpoints. 
-          Unlike game mode, there's no scoring and you can continue even with timeline contradictions.
         </div>
       </div>
 
