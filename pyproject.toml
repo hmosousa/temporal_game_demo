@@ -15,7 +15,8 @@ dependencies = [
     "transformers (>=4.52.3,<5.0.0)",
     "pytest (>=8.3.5,<9.0.0)",
     "spacy (>=3.8.7,<4.0.0)",
-    "py-heideltime (>=1.0.6,<2.0.0)"
+    "py-heideltime (>=1.0.6,<2.0.0)",
+    "torch (>=2.7.0,<3.0.0)"
 ]
 
 

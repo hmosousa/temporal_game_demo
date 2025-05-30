@@ -35,7 +35,23 @@ cd demo
 python app.py
 ```
 
-5. Open your browser and go to `http://localhost:5000`
+5. Launch docker with temporal tagger
+
+```sh
+docker pull hmosousa/tei2go-en:latest
+docker run -d -p 8000:8000 hmosousa/tei2go-en:latest
+```
+
+To test the service:
+
+```sh
+curl -X POST "http://localhost:8000/annotate" \
+     -H "Content-Type: application/json" \
+     -d '{"text": "I have a meeting tomorrow at 3 PM and another one next week."}'
+```
+
+
+6. Open your browser and go to `http://localhost:5000`
 
 ## How to Play
 
