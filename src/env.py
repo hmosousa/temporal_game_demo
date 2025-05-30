@@ -107,6 +107,9 @@ class TemporalGame:
             old_tgt_id = rel["target"].split(" ")[1]
             new_tgt_id = entity_map[old_tgt_id]
             rel["target"] = rel["target"].replace(old_tgt_id, new_tgt_id)
+            
+        # sort entities by offsets
+        doc["entities"].sort(key=lambda x: x["offsets"][0])
 
         self.true_doc = doc
         self.pred_doc = copy.deepcopy(self.true_doc)
