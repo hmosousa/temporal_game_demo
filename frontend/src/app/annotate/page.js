@@ -442,7 +442,7 @@ export default function Annotate() {
                     
                     {/* Annotation Board Component */}
                     <div className="mt-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Temporal Relations Board</h3>
+                      
                       <AnnotationBoard
                         text={currentFile.data.processedText || currentFile.data.text}
                         entities={getCurrentEntities()}
