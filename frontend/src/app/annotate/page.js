@@ -13,7 +13,7 @@ export default function Annotate() {
               href="/" 
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
             >
-              ← Back to Home
+              ← Home
             </Link>
             <h1 className="text-3xl font-semibold text-dark text-center flex-1 pb-4 border-b border-gray-200">
               Annotation Tool

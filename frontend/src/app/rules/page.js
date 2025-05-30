@@ -5,7 +5,15 @@ import Footer from '../../components/Footer'
 
 export default function Rules() {
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col">
+    <main className="min-h-screen bg-gray-50 flex flex-col relative">
+      {/* Floating Rules Button */}
+      <Link 
+        href="/rules" 
+        className="absolute top-6 right-6 z-10 px-4 py-2 bg-gray-500 text-white rounded-lg cursor-default text-sm font-medium shadow-lg opacity-60"
+      >
+        📖 Rules
+      </Link>
+      
       <div className="flex-1">
         <div className="max-w-4xl mx-auto p-8">
           {/* Header */}
