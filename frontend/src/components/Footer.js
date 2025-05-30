@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Footer() {
   return (
     <footer className="w-full py-2 bg-white border-t border-gray-200">
@@ -14,6 +16,12 @@ export default function Footer() {
           </a>
         </p>
         <div className="text-xs text-gray-500 space-x-4">
+          <Link
+            href="/rules"
+            className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
+          >
+            Rules
+          </Link>
           <a
             href="https://arxiv.org/abs/2502.14394"
             target="_blank"

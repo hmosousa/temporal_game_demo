@@ -15,12 +15,18 @@ export default function Home() {
             A new approach to temporal relation extraction
           </p>
           
-          <div className="flex gap-8 justify-center flex-wrap">
+          <div className="flex gap-6 justify-center flex-wrap">
             <Link 
               href="/game" 
               className="btn-primary w-40 text-center block"
             >
               Game
+            </Link>
+            <Link 
+              href="/rules" 
+              className="btn-primary w-40 text-center block bg-green-600 hover:bg-green-700"
+            >
+              How to Play
             </Link>
             <Link 
               href="/annotate" 

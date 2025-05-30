@@ -189,6 +189,12 @@ export default function Game() {
             >
               ← Home
             </Link>
+            <Link 
+              href="/rules" 
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+            >
+              📖 Rules
+            </Link>
             <h1 className="text-3xl font-semibold text-dark text-center flex-1 pb-4 border-b border-gray-200">
               Temporal Game
             </h1>
