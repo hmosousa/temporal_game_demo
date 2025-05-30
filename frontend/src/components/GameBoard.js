@@ -245,17 +245,6 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
 
   return (
     <div className={getContainerClasses()}>
-      <div className={styles.boardHeader}>
-        <button 
-          onClick={onUndo}
-          className={styles.undoButton}
-          disabled={disabled || isBoardEmpty}
-          title={isBoardEmpty ? "No moves to undo" : "Undo last move"}
-        >
-          ↶ Undo
-        </button>
-      </div>
-      
       {hasTemporalIncoherence && (
         <div className={styles.incoherenceAlert}>
           <span className={styles.alertIcon}>⚠️</span>
@@ -297,6 +286,17 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className={styles.boardFooter}>
+        <button 
+          onClick={onUndo}
+          className={styles.undoButton}
+          disabled={disabled || isBoardEmpty}
+          title={isBoardEmpty ? "No moves to undo" : "Undo last move"}
+        >
+          ↶ Undo
+        </button>
       </div>
 
       {selectedCell && (

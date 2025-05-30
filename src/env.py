@@ -24,13 +24,9 @@ MASKED_POSITION = -2
 
 
 DATASETS = [
-    "small_temporal_games_default_2",
     "small_temporal_games_closure_2",
-    "small_temporal_games_default_3",
     "small_temporal_games_closure_3",
-    "small_temporal_games_default_4",
     "small_temporal_games_closure_4",
-    "small_temporal_games_default_5",
     "small_temporal_games_closure_5",
 ]
 

@@ -20,6 +20,7 @@ conda activate ./.conda
 2. Install the required dependencies installed:
 ```sh
 poetry install
+
 ```
 
 3. Set up your environment variables. Create a `.env` file in the root directory with:

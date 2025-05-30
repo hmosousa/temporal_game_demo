@@ -1,12 +1,9 @@
-import json
-import json.scanner
 import logging
 import os
 import uuid
 
 from flask import Flask, jsonify, request, session
 
-from src.base import PointRelation
 from src.env import TemporalGameEnv
 
 # Configure logging
@@ -41,7 +38,7 @@ def new_game():
 
     game_id = str(uuid.uuid4())
     game = TemporalGameEnv(mode="test", level=level)
-    obs, info = game.reset()
+    obs, info = game.reset(29)
 
     games[game_id] = {"game": game, "obs": obs, "info": info, "reward": 0}
 
@@ -99,11 +96,11 @@ def step():
             "terminated": terminated,
             "is_success": info["is_success"],
         }
-        
+
         if terminated:
             data["true_board"] = info["true_board"]
         return jsonify(data)
-    
+
     except Exception as e:
         logger.error(f"Game {game_id}: Error during step: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 400
@@ -143,11 +140,11 @@ def undo():
             "reward": game_data["reward"],  # Keep current total reward
             "terminated": info["terminal_observation"],
             "is_success": info["is_success"],
-            "undo_success": True
+            "undo_success": True,
         }
-        
+
         return jsonify(response_data)
-    
+
     except Exception as e:
         logger.error(f"Game {game_id}: Error during undo: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 400
