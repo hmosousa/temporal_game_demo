@@ -14,7 +14,7 @@ const AnnotationBoard = ({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [hasIncoherence, setHasIncoherence] = useState(false)
-  const [relationsCount, setRelationsCount] = useState(0)
+  const [nAnnotated, setNAnnotated] = useState(0)
 
   // Initialize annotation session when entities change
   useEffect(() => {
@@ -53,7 +53,7 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setHasIncoherence(data.has_incoherence || false)
-      setRelationsCount(0)
+      setNAnnotated(0)
 
     } catch (err) {
       console.error('Error initializing annotation session:', err)
@@ -91,11 +91,11 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setHasIncoherence(data.has_incoherence || false)
-      setRelationsCount(data.relations_count || 0)
+      setNAnnotated(data.n_annotated || 0)
 
       // Notify parent of relations change
       if (onRelationsChange) {
-        onRelationsChange(data.relations_count || 0)
+        onRelationsChange(data.n_annotated || 0)
       }
 
     } catch (err) {
@@ -133,11 +133,11 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setHasIncoherence(data.has_incoherence || false)
-      setRelationsCount(data.relations_count || 0)
+      setNAnnotated(data.n_annotated || 0)
 
       // Notify parent of relations change
       if (onRelationsChange) {
-        onRelationsChange(data.relations_count || 0)
+        onRelationsChange(data.n_annotated || 0)
       }
 
     } catch (err) {
@@ -247,7 +247,7 @@ const AnnotationBoard = ({
           <div className="flex items-center gap-6">
             <div className="text-sm">
               <span className="text-gray-600">Relations annotated:</span>
-              <span className="ml-2 font-semibold text-blue-600">{relationsCount}</span>
+              <span className="ml-2 font-semibold text-blue-600">{nAnnotated}</span>
             </div>
             {hasIncoherence && (
               <div className="flex items-center gap-2 text-amber-600">

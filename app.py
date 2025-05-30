@@ -220,6 +220,7 @@ def new_annotation_session():
                 "endpoints": obs["endpoints"],
                 "entities": obs["entities"],
                 "has_incoherence": False,
+                "n_annotated": 0,
             }
         )
 
@@ -270,6 +271,7 @@ def annotation_step():
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,
             "relations_count": len(session_data["relations"]),
+            "n_annotated": info["n_annotated"],
         }
 
         return jsonify(response_data)
@@ -319,6 +321,7 @@ def annotation_undo():
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,
             "relations_count": len(session_data["relations"]),
+            "n_annotated": info["n_annotated"],
             "undo_success": True,
         }
 
