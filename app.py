@@ -1,10 +1,12 @@
+import copy
 import logging
 import os
+import random
 import uuid
 
 from flask import Flask, jsonify, request, session
 
-from src.env import TemporalGameEnv
+from src.env import TemporalGame, load_documents
 
 # Configure logging
 logging.basicConfig(
@@ -19,6 +21,8 @@ app.secret_key = os.environ.get("SECRET_KEY", "temporal_game_secret")
 
 # Dictionary to store game instances
 games = {}
+# Dictionary to store annotation sessions
+annotation_sessions = {}
 
 
 @app.route("/api/new_game", methods=["POST"])
@@ -37,8 +41,11 @@ def new_game():
     logger.info(f"Creating game with level: {level}")
 
     game_id = str(uuid.uuid4())
-    game = TemporalGameEnv(mode="test", level=level)
-    obs, info = game.reset(29)
+    docs = load_documents(level)
+    doc_id = random.randint(0, len(docs) - 1)
+    doc = copy.deepcopy(docs[doc_id])
+    game = TemporalGame(doc)
+    obs, info = game.reset()
 
     games[game_id] = {"game": game, "obs": obs, "info": info, "reward": 0}
 
@@ -148,6 +155,226 @@ def undo():
     except Exception as e:
         logger.error(f"Game {game_id}: Error during undo: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/new_annotation_session", methods=["POST"])
+def new_annotation_session():
+    logger.info("Creating new annotation session")
+
+    data = request.get_json() or {}
+    text = data.get("text")
+    entities = data.get("entities", [])
+    dct = data.get("dct")
+
+    if not text:
+        logger.error("Missing text for annotation session")
+        return jsonify({"error": "Text is required for annotation session"}), 400
+
+    if len(entities) < 2:
+        logger.error("Need at least 2 entities for annotation")
+        return jsonify({"error": "At least 2 entities required for annotation"}), 400
+
+    logger.info(f"Creating annotation session with {len(entities)} entities")
+
+    session_id = str(uuid.uuid4())
+
+    try:
+        # Create a mock document structure that matches what TemporalGame expects
+        mock_doc = {
+            "text": text,
+            "entities": [],
+            "relations": [],  # Start with no relations
+        }
+
+        # Convert entities to the format expected by the game
+        for i, entity in enumerate(entities):
+            # Skip DCT entities for the game board
+            if entity.get("isDCT"):
+                continue
+
+            game_entity = {
+                "id": f"e{i}",
+                "text": entity.get("text", text[entity["start"] : entity["end"]]),
+                "start": entity["start"],
+                "end": entity["end"],
+                "type": entity.get("type", "interval"),
+            }
+            mock_doc["entities"].append(game_entity)
+
+        # Initialize game with the mock document directly
+
+        # Manually create a Game instance with our custom document
+
+        game = TemporalGame(mock_doc)
+
+        obs = game.state
+        info = {
+            "doc_id": -1,
+            "n_inferred": 0,
+            "n_annotated": 0,
+            "n_annotated_correct": 0,
+            "is_success": False,
+            "terminal_observation": False,
+            "has_incoherence": False,
+        }
+
+        annotation_sessions[session_id] = {
+            "game": game,
+            "obs": obs,
+            "info": info,
+            "text": text,
+            "entities": entities,
+            "dct": dct,
+            "relations": [],  # Track annotated relations
+        }
+
+        # Store the session_id in the session
+        session["annotation_session_id"] = session_id
+
+        logger.info(f"New annotation session created with ID: {session_id}")
+
+        return jsonify(
+            {
+                "session_id": session_id,
+                "text": text,
+                "board": obs["board"],
+                "endpoints": obs["endpoints"],
+                "entities": obs["entities"],
+                "has_incoherence": False,
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error creating annotation session: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Failed to create annotation session: {str(e)}"}), 500
+
+
+@app.route("/api/annotation_step", methods=["POST"])
+def annotation_step():
+    data = request.json
+    session_id = data.get("session_id", session.get("annotation_session_id"))
+
+    if not session_id or session_id not in annotation_sessions:
+        logger.error(f"Invalid annotation session ID: {session_id}")
+        return jsonify({"error": "Invalid annotation session ID"}), 400
+
+    session_data = annotation_sessions[session_id]
+    game = session_data["game"]
+
+    action = data["action"]
+    try:
+        # For annotation mode, we don't care about termination on errors
+        obs, reward, terminated, info = game.step(action)
+
+        # Update session data
+        session_data["obs"] = obs
+        session_data["info"] = info
+
+        # Track the relation
+        position, relation = action
+        session_data["relations"].append(
+            {
+                "position": position,
+                "relation": relation,
+                "timestamp": obs.get("step_count", len(session_data["relations"])),
+            }
+        )
+
+        logger.info(f"Annotation session {session_id}: Step completed")
+
+        # Check for temporal incoherence (but don't terminate)
+        has_incoherence = info.get("has_incoherence", False)
+
+        response_data = {
+            "board": obs["board"],
+            "endpoints": obs["endpoints"],
+            "entities": obs["entities"],
+            "has_incoherence": has_incoherence,
+            "relations_count": len(session_data["relations"]),
+        }
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        logger.error(
+            f"Annotation session {session_id}: Error during step: {str(e)}",
+            exc_info=True,
+        )
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/annotation_undo", methods=["POST"])
+def annotation_undo():
+    data = request.json
+    session_id = data.get("session_id", session.get("annotation_session_id"))
+
+    if not session_id or session_id not in annotation_sessions:
+        logger.error(f"Invalid annotation session ID: {session_id}")
+        return jsonify({"error": "Invalid annotation session ID"}), 400
+
+    session_data = annotation_sessions[session_id]
+    game_env = session_data["game"]
+
+    try:
+        obs, info, success = game_env.undo()
+
+        if not success:
+            logger.warning(f"Annotation session {session_id}: No actions to undo")
+            return jsonify({"error": "No actions to undo"}), 400
+
+        # Update session data
+        session_data["obs"] = obs
+        session_data["info"] = info
+
+        # Remove the last relation
+        if session_data["relations"]:
+            session_data["relations"].pop()
+
+        logger.info(f"Annotation session {session_id}: Undo successful")
+
+        has_incoherence = info.get("has_incoherence", False)
+
+        response_data = {
+            "board": obs["board"],
+            "endpoints": obs["endpoints"],
+            "entities": obs["entities"],
+            "has_incoherence": has_incoherence,
+            "relations_count": len(session_data["relations"]),
+            "undo_success": True,
+        }
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        logger.error(
+            f"Annotation session {session_id}: Error during undo: {str(e)}",
+            exc_info=True,
+        )
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/get_annotation_results", methods=["POST"])
+def get_annotation_results():
+    data = request.json
+    session_id = data.get("session_id", session.get("annotation_session_id"))
+
+    if not session_id or session_id not in annotation_sessions:
+        logger.error(f"Invalid annotation session ID: {session_id}")
+        return jsonify({"error": "Invalid annotation session ID"}), 400
+
+    session_data = annotation_sessions[session_id]
+
+    return jsonify(
+        {
+            "text": session_data["text"],
+            "entities": session_data["entities"],
+            "dct": session_data["dct"],
+            "relations": session_data["relations"],
+            "board": session_data["obs"]["board"],
+            "endpoints": session_data["obs"]["endpoints"],
+            "total_relations": len(session_data["relations"]),
+        }
+    )
 
 
 if __name__ == "__main__":

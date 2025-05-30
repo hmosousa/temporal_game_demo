@@ -1,0 +1,294 @@
+'use client'
+
+import { useState, useCallback, useEffect } from 'react'
+import GameBoard from './GameBoard'
+
+const AnnotationBoard = ({ 
+  text, 
+  entities, 
+  dct, 
+  onRelationsChange 
+}) => {
+  const [sessionId, setSessionId] = useState(null)
+  const [boardData, setBoardData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [hasIncoherence, setHasIncoherence] = useState(false)
+  const [relationsCount, setRelationsCount] = useState(0)
+
+  // Initialize annotation session when entities change
+  useEffect(() => {
+    if (entities && entities.length >= 2) {
+      initializeAnnotationSession()
+    }
+  }, [entities, text, dct])
+
+  const initializeAnnotationSession = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch('/api/new_annotation_session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: text,
+          entities: entities,
+          dct: dct
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create annotation session')
+      }
+
+      const data = await response.json()
+      setSessionId(data.session_id)
+      setBoardData({
+        board: data.board,
+        endpoints: data.endpoints,
+        entities: data.entities
+      })
+      setHasIncoherence(data.has_incoherence || false)
+      setRelationsCount(0)
+
+    } catch (err) {
+      console.error('Error initializing annotation session:', err)
+      setError(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMove = async (position, relation) => {
+    if (!sessionId) return
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/annotation_step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          action: [position, relation]
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to make annotation')
+      }
+
+      const data = await response.json()
+      setBoardData({
+        board: data.board,
+        endpoints: data.endpoints,
+        entities: data.entities
+      })
+      setHasIncoherence(data.has_incoherence || false)
+      setRelationsCount(data.relations_count || 0)
+
+      // Notify parent of relations change
+      if (onRelationsChange) {
+        onRelationsChange(data.relations_count || 0)
+      }
+
+    } catch (err) {
+      console.error('Error making annotation:', err)
+      setError(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUndo = async () => {
+    if (!sessionId) return
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/annotation_undo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          session_id: sessionId
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'No actions to undo')
+      }
+
+      const data = await response.json()
+      setBoardData({
+        board: data.board,
+        endpoints: data.endpoints,
+        entities: data.entities
+      })
+      setHasIncoherence(data.has_incoherence || false)
+      setRelationsCount(data.relations_count || 0)
+
+      // Notify parent of relations change
+      if (onRelationsChange) {
+        onRelationsChange(data.relations_count || 0)
+      }
+
+    } catch (err) {
+      console.error('Error during undo:', err)
+      setError(`Error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const exportAnnotations = async () => {
+    if (!sessionId) return
+
+    try {
+      const response = await fetch('/api/get_annotation_results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          session_id: sessionId
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get annotation results')
+      }
+
+      const data = await response.json()
+      
+      // Create export data
+      const exportData = {
+        text: data.text,
+        entities: data.entities,
+        dct: data.dct,
+        relations: data.relations,
+        total_relations: data.total_relations,
+        annotated_at: new Date().toISOString()
+      }
+
+      const dataStr = JSON.stringify(exportData, null, 2)
+      const dataBlob = new Blob([dataStr], { type: 'application/json' })
+      const url = URL.createObjectURL(dataBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `temporal_relations_${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+    } catch (err) {
+      console.error('Error exporting annotations:', err)
+      setError(`Error: ${err.message}`)
+    }
+  }
+
+  if (loading && !boardData) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Initializing Annotation Board</h3>
+          <p className="text-gray-600">Preparing temporal relation grid...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+          {error}
+        </div>
+        <button 
+          onClick={initializeAnnotationSession}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
+
+  if (!boardData || !entities || entities.length < 2) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🎯</div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Ready for Annotation</h3>
+          <p className="text-gray-600">
+            You need at least 2 entities to start annotating temporal relations. 
+            Create more entities by selecting text above.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Annotation Status */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="text-sm">
+              <span className="text-gray-600">Relations annotated:</span>
+              <span className="ml-2 font-semibold text-blue-600">{relationsCount}</span>
+            </div>
+            {hasIncoherence && (
+              <div className="flex items-center gap-2 text-amber-600">
+                <span>⚠️</span>
+                <span className="text-sm font-medium">Timeline has contradictions</span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={exportAnnotations}
+            disabled={relationsCount === 0}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+              relationsCount > 0
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            📥 Export Relations
+          </button>
+        </div>
+      </div>
+
+      {/* Annotation Instructions */}
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <div className="text-sm text-blue-700">
+          <strong>Annotation Mode:</strong> Click on grid cells to define temporal relations between entity endpoints. 
+          Unlike game mode, there's no scoring and you can continue even with timeline contradictions.
+        </div>
+      </div>
+
+      {/* Game Board */}
+      <GameBoard
+        board={boardData.board}
+        endpoints={boardData.endpoints}
+        onMakeMove={handleMove}
+        onUndo={handleUndo}
+        disabled={loading}
+        hasTemporalIncoherence={hasIncoherence}
+      />
+    </div>
+  )
+}
+
+export default AnnotationBoard 

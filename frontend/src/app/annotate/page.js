@@ -5,12 +5,14 @@ import Link from 'next/link'
 import Footer from '../../components/Footer'
 import FileUpload from '../../components/FileUpload'
 import TextHighlighter from '../../components/TextHighlighter'
+import AnnotationBoard from '../../components/AnnotationBoard'
 
 export default function Annotate() {
   const [uploadedFiles, setUploadedFiles] = useState([])
   const [currentFile, setCurrentFile] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [fileEntities, setFileEntities] = useState({}) // Store entities per file
+  const [relationsCount, setRelationsCount] = useState(0)
 
   // Helper function to process text and entities with DCT
   const processFileWithDCT = (fileData) => {
@@ -274,6 +276,10 @@ export default function Annotate() {
     URL.revokeObjectURL(url)
   }
 
+  const handleRelationsChange = useCallback((count) => {
+    setRelationsCount(count)
+  }, [])
+
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1">
@@ -404,6 +410,9 @@ export default function Annotate() {
                         <div className="px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm">
                           {getCurrentEntities().length} entities
                         </div>
+                        <div className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm">
+                          {relationsCount} relations
+                        </div>
                         <button 
                           onClick={exportAnnotations}
                           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
@@ -420,6 +429,17 @@ export default function Annotate() {
                       onEntitiesChange={handleEntitiesChange}
                       dct={null} // Don't pass DCT since it's now part of the text
                     />
+                    
+                    {/* Annotation Board Component */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Temporal Relations Board</h3>
+                      <AnnotationBoard
+                        text={currentFile.data.processedText || currentFile.data.text}
+                        entities={getCurrentEntities()}
+                        dct={currentFile.data.dct}
+                        onRelationsChange={handleRelationsChange}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
