@@ -1,0 +1,12 @@
+{
+    "dct": "10/30/89",
+    "text": "Hewlett-Packard Co. said it raised its stake in Octel Communications Corp. to 8.5% of the common shares outstanding.",
+    "entities": [
+        {
+            "start": 53,
+            "end": 57,
+            "text": "said",
+            "type": "interval"
+        }
+    ]
+}
