@@ -97,9 +97,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
 
       // Determine entity styling based on type and whether it's DCT
       let entityClass = 'relative inline-block px-1 rounded cursor-pointer transition-all '
-      if (entity.isDCT) {
-        entityClass += 'bg-green-200 border-b-2 border-green-400'
-      } else if (entity.type === 'instant') {
+      if (entity.type === 'instant') {
         entityClass += 'bg-purple-200 border-b-2 border-purple-400'
       } else {
         entityClass += 'bg-blue-200 border-b-2 border-blue-400'
@@ -125,13 +123,13 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           {/* Entity tooltip */}
           {isHovered && (
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-              {entity.isDCT ? 'DCT' : entity.type} ({entity.start}-{entity.end})
+              {entity.type} ({entity.start}-{entity.end})
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
             </div>
           )}
 
           {/* Delete button on hover - but not for DCT entities */}
-          {isHovered && !entity.isDCT && (
+          {isHovered && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -223,8 +221,7 @@ const EntityEditDialog = ({ entity, text, onUpdate, onCancel, onDelete }) => {
       type,
       start: parseInt(start),
       end: parseInt(end),
-      text: entityText,
-      isDCT: entity.isDCT // Preserve DCT flag
+      text: entityText
     })
   }
 
@@ -232,14 +229,8 @@ const EntityEditDialog = ({ entity, text, onUpdate, onCancel, onDelete }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Edit {entity.isDCT ? 'DCT' : 'Entity'}
+          Edit Entity
         </h3>
-        
-        {entity.isDCT && (
-          <div className="mb-4 p-3 bg-green-50 border-l-4 border-green-400 text-sm text-green-700">
-            📅 <strong>Document Creation Time:</strong> This is a special entity representing when the document was created.
-          </div>
-        )}
         
         <div className="space-y-4 mb-6">
           <div>
@@ -250,14 +241,10 @@ const EntityEditDialog = ({ entity, text, onUpdate, onCancel, onDelete }) => {
               value={type}
               onChange={(e) => setType(e.target.value)}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              disabled={entity.isDCT} // DCT should remain as instant
             >
               <option value="interval">Interval</option>
               <option value="instant">Instant</option>
             </select>
-            {entity.isDCT && (
-              <p className="text-xs text-gray-500 mt-1">DCT entities are always instants</p>
-            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -306,18 +293,16 @@ const EntityEditDialog = ({ entity, text, onUpdate, onCancel, onDelete }) => {
           >
             Cancel
           </button>
-          {!entity.isDCT && (
-            <button
-              onClick={() => {
-                if (confirm('Are you sure you want to delete this entity?')) {
-                  onDelete()
-                }
-              }}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this entity?')) {
+                onDelete()
+              }
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Delete
+          </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
