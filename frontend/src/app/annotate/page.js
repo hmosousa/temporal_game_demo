@@ -162,56 +162,65 @@ export default function Annotate() {
     return fileEntities[currentFile.name] || []
   }
 
-  const exportAnnotations = () => {
+  const saveAnnotations = () => {
     if (!currentFile) return
 
     const entities = getCurrentEntities()
     
-    // Convert back to original text offsets for export
-    let exportEntities = [...entities]
+    // Convert back to original text offsets for saving
+    let saveEntities = [...entities]
     let originalText = currentFile.data.text
     
     if (currentFile.data.dct) {
       const dctPrefix = `Document creation time: ${currentFile.data.dct}\n`
       const dctOffset = dctPrefix.length
       
-      // Remove DCT entity and adjust offsets back
-      exportEntities = entities
+      // Remove DCT entity and adjust offsets back to original text
+      saveEntities = entities
         .filter(entity => !entity.isDCT) // Remove DCT entity
         .map(entity => ({
           start: entity.start - dctOffset,
           end: entity.end - dctOffset,
           text: entity.text,
-          type: entity.type
+          type: entity.type,
+          id: entity.id
         }))
     } else {
-      exportEntities = entities.map(entity => ({
+      saveEntities = entities.map(entity => ({
         start: entity.start,
         end: entity.end,
         text: entity.text,
-        type: entity.type
+        type: entity.type,
+        id: entity.id
       }))
     }
 
-    const exportData = {
-      filename: currentFile.name,
-      text: originalText,
-      dct: currentFile.data.dct,
-      entities: exportEntities,
-      annotated_at: new Date().toISOString(),
-      total_entities: exportEntities.length
-    }
+    // Update the file data in uploadedFiles state
+    setUploadedFiles(prev => prev.map(file => {
+      if (file === currentFile) {
+        return {
+          ...file,
+          data: {
+            ...file.data,
+            entities: saveEntities,
+            last_saved: new Date().toISOString()
+          }
+        }
+      }
+      return file
+    }))
 
-    const dataStr = JSON.stringify(exportData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: 'application/json' })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `annotated_${currentFile.name.replace('.json', '')}_${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    // Show success feedback
+    const button = document.querySelector('[data-save-button]')
+    if (button) {
+      const originalText = button.textContent
+      button.textContent = '✅ Saved!'
+      button.disabled = true
+      setTimeout(() => {
+        button.textContent = originalText
+        button.disabled = false
+      }, 2000)
+    }
   }
 
   const generateSampleFile = () => {
@@ -336,44 +345,44 @@ export default function Annotate() {
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => {
                       const fileEntityCount = (fileEntities[file.name] || []).length
+                      const lastSaved = file.data.last_saved
+                      const isCurrentFile = currentFile === file
+                      
                       return (
                         <div 
                           key={index} 
                           className={`group relative p-3 rounded-lg border cursor-pointer transition-colors ${
-                            currentFile === file 
+                            isCurrentFile
                               ? 'bg-blue-50 border-blue-200' 
                               : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                           }`}
                           onClick={() => handleFileSelect(file)}
                         >
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-                                  <span className="text-blue-600 text-xs">📄</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-800 truncate text-sm">
-                                    {file.name}
-                                    {file.isSystemFile && (
-                                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                                        Sample
-                                      </span>
-                                    )}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {fileEntityCount} entities • {file.data.text?.length || 0} chars
-                                  </p>
-                                </div>
+                              <h4 className="text-sm font-medium text-gray-800 truncate">
+                                {file.name}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-gray-500">
+                                  {fileEntityCount} entities
+                                </span>
+                                {lastSaved && (
+                                  <span className="text-xs text-green-600">
+                                    • Saved {new Date(lastSaved).toLocaleDateString()}
+                                  </span>
+                                )}
                               </div>
                             </div>
+                            
                             {!file.isSystemFile && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleDeleteFile(file)
                                 }}
-                                className="opacity-0 group-hover:opacity-100 ml-2 text-red-500 hover:text-red-700 transition-opacity"
+                                className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 transition-all"
+                                title="Delete file"
                               >
                                 ×
                               </button>
@@ -414,10 +423,11 @@ export default function Annotate() {
                           {relationsCount} relations
                         </div>
                         <button 
-                          onClick={exportAnnotations}
+                          onClick={saveAnnotations}
+                          data-save-button
                           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                         >
-                          📥 Export
+                          💾 Save
                         </button>
                       </div>
                     </div>
