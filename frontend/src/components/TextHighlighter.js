@@ -5,7 +5,8 @@ import { generateEntityColor, getDarkerEntityColor, extractEntityId } from '../u
 
 const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) => {
   const [hoveredEntity, setHoveredEntity] = useState(null)
-  const [editingEntity, setEditingEntity] = useState(null)
+  const [showTypeDropdown, setShowTypeDropdown] = useState(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
   const textRef = useRef(null)
 
   // Sort entities by start position for proper rendering and color assignment
@@ -61,12 +62,12 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
     selection.removeAllRanges()
   }, [entities, onEntitiesChange])
 
-  const updateEntity = (entityId, updates) => {
+  const updateEntityType = (entityId, newType) => {
     const updatedEntities = entities.map(entity =>
-      entity.id === entityId ? { ...entity, ...updates } : entity
+      entity.id === entityId ? { ...entity, type: newType } : entity
     )
     onEntitiesChange(updatedEntities)
-    setEditingEntity(null)
+    setShowTypeDropdown(null)
   }
 
   const deleteEntity = (entityId) => {
@@ -74,6 +75,31 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
     onEntitiesChange(updatedEntities)
     setHoveredEntity(null)
   }
+
+  const handleEntityClick = (entity, e) => {
+    e.stopPropagation()
+    
+    // Get the position of the clicked element
+    const rect = e.currentTarget.getBoundingClientRect()
+    setDropdownPosition({
+      top: rect.bottom + window.scrollY + 5,
+      left: rect.left + window.scrollX
+    })
+    
+    setShowTypeDropdown(entity.id)
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowTypeDropdown(null)
+    }
+    
+    if (showTypeDropdown) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showTypeDropdown])
 
   const renderTextWithEntities = () => {
     if (sortedEntities.length === 0) {
@@ -96,7 +122,6 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
       // Add highlighted entity
       const entityText = entity.text || text.substring(entity.start, entity.end)
       const isHovered = hoveredEntity === entity.id
-      const isEditing = editingEntity === entity.id
 
       // Determine entity styling based on type and use consistent colors
       // Use the position in the sorted array for color assignment
@@ -123,10 +148,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           className={entityClass}
           onMouseEnter={() => setHoveredEntity(entity.id)}
           onMouseLeave={() => setHoveredEntity(null)}
-          onClick={(e) => {
-            e.stopPropagation()
-            setEditingEntity(entity.id)
-          }}
+          onClick={(e) => handleEntityClick(entity, e)}
           style={entityStyle}
         >
           {entityText}
@@ -139,7 +161,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
             </div>
           )}
 
-          {/* Delete button on hover - but not for DCT entities */}
+          {/* Delete button on hover */}
           {isHovered && (
             <button
               onClick={(e) => {
@@ -180,7 +202,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           </button>
           {/* Tooltip */}
           <div className="absolute right-0 top-8 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-            Select text with your mouse to automatically create entities (defaults to 'interval'). Click on highlighted entities to edit their type (interval or instant) or position.
+            Select text with your mouse to automatically create entities (defaults to 'interval'). Click on highlighted entities to change their type (interval or instant).
             <div className="absolute -top-1 right-3 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
           </div>
         </div>
@@ -195,133 +217,30 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
         </div>
       </div>
 
-      {/* Edit Entity Dialog */}
-      {editingEntity && (
-        <EntityEditDialog
-          entity={entities.find(e => e.id === editingEntity)}
-          text={text}
-          onUpdate={(updates) => updateEntity(editingEntity, updates)}
-          onCancel={() => setEditingEntity(null)}
-          onDelete={() => deleteEntity(editingEntity)}
-        />
+      {/* Type Dropdown */}
+      {showTypeDropdown && (
+        <div
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-32"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => updateEntityType(showTypeDropdown, 'interval')}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+          >
+            Interval
+          </button>
+          <button
+            onClick={() => updateEntityType(showTypeDropdown, 'instant')}
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors"
+          >
+            Instant
+          </button>
+        </div>
       )}
-
-    </div>
-  )
-}
-
-// Entity Edit Dialog Component
-const EntityEditDialog = ({ entity, text, onUpdate, onCancel, onDelete }) => {
-  const [type, setType] = useState(entity.type)
-  const [start, setStart] = useState(entity.start)
-  const [end, setEnd] = useState(entity.end)
-
-  const entityText = text.substring(start, end)
-
-  const handleSave = () => {
-    if (start >= end) {
-      alert('Start position must be less than end position')
-      return
-    }
-    if (start < 0 || end > text.length) {
-      alert('Position out of text bounds')
-      return
-    }
-
-    onUpdate({
-      type,
-      start: parseInt(start),
-      end: parseInt(end),
-      text: entityText
-    })
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Edit Entity
-        </h3>
-        
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Entity Type
-            </label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="interval">Interval</option>
-              <option value="instant">Instant</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Position
-              </label>
-              <input
-                type="number"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                min="0"
-                max={text.length}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Position
-              </label>
-              <input
-                type="number"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                min="0"
-                max={text.length}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Text Preview
-            </label>
-            <div className="bg-gray-100 p-3 rounded border text-sm">
-              "{entityText}"
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this entity?')) {
-                onDelete()
-              }
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Save
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
