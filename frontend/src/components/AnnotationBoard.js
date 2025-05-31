@@ -241,23 +241,24 @@ const AnnotationBoard = ({
 
   return (
     <div className="space-y-4">
-      {/* Annotation Status */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="text-sm">
-              <span className="text-gray-600">Relations annotated:</span>
-              <span className="ml-2 font-semibold text-blue-600">{nAnnotated}</span>
-            </div>
-            {hasIncoherence && (
-              <div className="flex items-center gap-2 text-amber-600">
-                <span>⚠️</span>
-                <span className="text-sm font-medium">Timeline has contradictions</span>
-              </div>
-            )}
-          </div>
-
+      {/* Simple Progress Bar */}
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">Temporal Relations</span>
+          <span className="text-xs text-gray-600">{nAnnotated} annotated</span>
         </div>
+        <div className="w-full bg-gray-200 rounded-full h-1.5">
+          <div 
+            className="bg-blue-600 h-1.5 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${Math.min((nAnnotated / Math.max(entities.length * 2, 1)) * 100, 100)}%` }}
+          ></div>
+        </div>
+        {hasIncoherence && (
+          <div className="flex items-center gap-1 mt-2">
+            <span className="text-amber-500 text-xs">⚠️</span>
+            <span className="text-xs text-amber-600">Timeline contradictions detected</span>
+          </div>
+        )}
       </div>
 
       {/* Game Board */}
