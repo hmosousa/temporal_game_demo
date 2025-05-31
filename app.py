@@ -221,6 +221,7 @@ def new_annotation_session():
                 "entities": obs["entities"],
                 "has_incoherence": False,
                 "n_annotated": 0,
+                "n_relations": game.n_relations,
             }
         )
 
@@ -272,6 +273,7 @@ def annotation_step():
             "has_incoherence": has_incoherence,
             "relations_count": len(session_data["relations"]),
             "n_annotated": info["n_annotated"],
+            "n_relations": game.n_relations,
         }
 
         return jsonify(response_data)

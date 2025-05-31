@@ -342,3 +342,9 @@ class TemporalGame:
             terminated, is_success = self.terminated
             info = self.get_info(terminated=terminated, is_success=is_success)
             return obs, info, False
+
+    @property
+    def n_relations(self):
+        """Number of relations in the true timeline."""
+        return len(self.edp_pair2idx)
+    

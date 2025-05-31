@@ -15,6 +15,7 @@ const AnnotationBoard = ({
   const [error, setError] = useState(null)
   const [hasIncoherence, setHasIncoherence] = useState(false)
   const [nAnnotated, setNAnnotated] = useState(0)
+  const [nRelations, setNRelations] = useState(0)
 
   // Initialize annotation session when entities change
   useEffect(() => {
@@ -54,6 +55,7 @@ const AnnotationBoard = ({
       })
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(0)
+      setNRelations(data.n_relations || 0)
 
     } catch (err) {
       console.error('Error initializing annotation session:', err)
@@ -92,6 +94,7 @@ const AnnotationBoard = ({
       })
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(data.n_annotated || 0)
+      setNRelations(data.n_relations || 0)
 
       // Notify parent of relations change
       if (onRelationsChange) {
@@ -134,6 +137,7 @@ const AnnotationBoard = ({
       })
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(data.n_annotated || 0)
+      setNRelations(data.n_relations || 0)
 
       // Notify parent of relations change
       if (onRelationsChange) {
@@ -250,7 +254,7 @@ const AnnotationBoard = ({
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div 
             className="bg-blue-600 h-1.5 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${Math.min((nAnnotated / Math.max(entities.length * 2, 1)) * 100, 100)}%` }}
+            style={{ width: `${Math.min((nAnnotated / Math.max(nRelations, 1)) * 100, 100)}%` }}
           ></div>
         </div>
         {hasIncoherence && (
