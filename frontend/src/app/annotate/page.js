@@ -40,7 +40,7 @@ export default function Annotate() {
         start: dctStartPos,
         end: dctEndPos,
         text: fileData.dct,
-        type: 'instant',
+        type: 'interval',
         id: 'dct-' + Date.now(),
         isDCT: true // Mark as DCT entity
       }
@@ -66,6 +66,13 @@ export default function Annotate() {
           text: "said",
           type: "interval",
           id: 1
+        },
+        {
+          start: 28,
+          end: 34,
+          text: "raised",
+          type: "instant",
+          id: 2
         }
       ]
     }

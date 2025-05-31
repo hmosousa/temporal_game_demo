@@ -187,6 +187,7 @@ def new_annotation_session():
                 "id": f"e{i}",
                 "text": entity.get("text", text[entity["start"] : entity["end"]]),
                 "offsets": [entity["start"], entity["end"]],
+                "type": entity.get("type", "interval"),
             }
             for i, entity in enumerate(entities)
         ],

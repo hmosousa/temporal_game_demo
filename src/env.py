@@ -128,6 +128,8 @@ class TemporalGame:
             if ent.get("type", "interval") == "instant"
         ]
         self.endpoints = internal_endpoints + instant_endpoints
+        # sort endpoints by offsets
+        self.endpoints.sort(key=lambda x: x.offsets[0])
         
         self.n_endpoints = len(self.endpoints)
 

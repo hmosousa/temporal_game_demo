@@ -180,7 +180,7 @@ const TextHighlighter = ({ text, entities = [], onEntitiesChange, dct = null }) 
           </button>
           {/* Tooltip */}
           <div className="absolute right-0 top-8 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-            Select text with your mouse to automatically create entities (defaults to 'interval'). Click on highlighted entities to edit their type or position.
+            Select text with your mouse to automatically create entities (defaults to 'interval'). Click on highlighted entities to edit their type (interval or instant) or position.
             <div className="absolute -top-1 right-3 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
           </div>
         </div>

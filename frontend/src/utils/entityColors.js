@@ -37,7 +37,7 @@ export function getDarkerEntityColor(entityId) {
   return ENTITY_BORDER_COLORS[entityNumber % ENTITY_BORDER_COLORS.length]
 }
 
-// Extract entity ID from endpoint string (e.g., "start e0" -> "e0")
+// Extract entity ID from endpoint string (e.g., "start e0", "end e1", "instant e0" -> "e0")
 export function extractEntityId(endpoint) {
   if (!endpoint) return null
   const parts = endpoint.split(' ')

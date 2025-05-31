@@ -153,9 +153,17 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
 
   // Format endpoint display text
   const formatEndpointDisplay = (endpoint) => {
-    // endpoint format is like "start e0" or "end e1"
+    // endpoint format is like "start e0", "end e1", or "instant e0"
     const [type, entityId] = endpoint.split(' ')
-    const subscript = type === 'start' ? 's' : 'e'
+    let subscript = 's'
+    
+    if (type === 'start') {
+      subscript = 's'
+    } else if (type === 'end') {
+      subscript = 'e'
+    } else if (type === 'instant') {
+      subscript = 'i'
+    }
     
     return (
       <div className={styles.endpointDisplay}>
