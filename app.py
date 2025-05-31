@@ -7,6 +7,8 @@ import uuid
 from flask import Flask, jsonify, request, session
 
 from src.env import TemporalGame, load_documents
+from src.event_tagger import EventTagger
+from src.timex_tagger import TimexTagger
 
 # Configure logging
 logging.basicConfig(
@@ -360,6 +362,67 @@ def get_annotation_results():
             "total_relations": len(session_data["relations"]),
         }
     )
+
+
+@app.route("/api/annotate_entities", methods=["POST"])
+def annotate_entities():
+    """Automatically detect entities in text using EventTagger and TimexTagger"""
+    logger.info("Processing automatic entity annotation request")
+    
+    data = request.get_json() or {}
+    text = data.get("text")
+    
+    if not text:
+        logger.error("Missing text for entity annotation")
+        return jsonify({"error": "Text is required for entity annotation"}), 400
+    
+    logger.info(f"Annotating entities for text of length {len(text)}")
+    
+    try:
+        # Initialize taggers
+        event_tagger = EventTagger()
+        timex_tagger = TimexTagger()
+        
+        # Get events and timexs
+        events = event_tagger(text)
+        timexs = timex_tagger(text)
+        
+        # Convert to standard format
+        entities = []
+        
+        # Add events
+        for event in events:
+            entities.append({
+                "start": event["offsets"][0],
+                "end": event["offsets"][1], 
+                "text": event["text"],
+                "type": "interval"  # Events are intervals by default
+            })
+            
+        # Add timexs
+        for timex in timexs:
+            entities.append({
+                "start": timex["offsets"][0],
+                "end": timex["offsets"][1],
+                "text": timex["text"], 
+                "type": "interval"  # Timexs are intervals by default
+            })
+        
+        # Sort entities by start position
+        entities.sort(key=lambda x: x["start"])
+        
+        logger.info(f"Found {len(events)} events and {len(timexs)} timexs, total {len(entities)} entities")
+        
+        return jsonify({
+            "entities": entities,
+            "events_count": len(events),
+            "timexs_count": len(timexs),
+            "total_count": len(entities)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error during automatic entity annotation: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Failed to annotate entities: {str(e)}"}), 500
 
 
 if __name__ == "__main__":

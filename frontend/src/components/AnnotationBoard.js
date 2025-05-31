@@ -235,7 +235,7 @@ const AnnotationBoard = ({
           <div className="text-4xl mb-4">🎯</div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Ready for Annotation</h3>
           <p className="text-gray-600">
-            You need at least 2 entities to start annotating temporal relations. 
+            You need at least two entities to start annotating temporal relations.<br/>
             Create more entities by selecting text above.
           </p>
         </div>

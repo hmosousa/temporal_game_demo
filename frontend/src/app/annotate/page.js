@@ -13,6 +13,7 @@ export default function Annotate() {
   const [showUpload, setShowUpload] = useState(false)
   const [fileEntities, setFileEntities] = useState({}) // Store entities per file
   const [relationsCount, setRelationsCount] = useState(0)
+  const [isAnnotating, setIsAnnotating] = useState(false)
 
   // Helper function to process text and entities with DCT
   const processFileWithDCT = (fileData) => {
@@ -296,6 +297,67 @@ export default function Annotate() {
     setRelationsCount(count)
   }, [])
 
+  // Automatic entity annotation function
+  const annotateEntitiesAutomatically = async () => {
+    if (!currentFile) return
+
+    setIsAnnotating(true)
+    try {
+      // Send the full processed text including DCT prefix for annotation
+      const textToAnnotate = currentFile.data.processedText || currentFile.data.text
+      
+      const response = await fetch('/api/annotate_entities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: textToAnnotate
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to annotate entities')
+      }
+
+      const data = await response.json()
+      
+      // Process the detected entities and merge with existing ones
+      const detectedEntities = data.entities || []
+      const currentEntities = getCurrentEntities()
+      
+      // No need to adjust offsets since we're sending the processed text directly
+      const adjustedDetectedEntities = detectedEntities.map((entity, idx) => ({
+        ...entity,
+        id: Date.now() + idx,
+        type: entity.type || 'interval' // Default to interval if not specified
+      }))
+      
+      // Filter out overlapping entities to avoid conflicts
+      const nonOverlappingEntities = adjustedDetectedEntities.filter(newEntity => {
+        return !currentEntities.some(existingEntity => 
+          (newEntity.start < existingEntity.end && newEntity.end > existingEntity.start)
+        )
+      })
+      
+      // Merge with existing entities
+      const mergedEntities = [...currentEntities, ...nonOverlappingEntities]
+      
+      // Update the entities for the current file
+      setFileEntities(prev => ({
+        ...prev,
+        [currentFile.name]: mergedEntities
+      }))
+
+    } catch (error) {
+      console.error('Error annotating entities:', error)
+      alert(`Error annotating entities: ${error.message}`)
+    } finally {
+      setIsAnnotating(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1">
@@ -423,6 +485,20 @@ export default function Annotate() {
                         Annotating: {currentFile.name}
                       </h2>
                       <div className="flex gap-2">
+                        <button
+                          onClick={annotateEntitiesAutomatically}
+                          disabled={isAnnotating}
+                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm disabled:bg-purple-400 disabled:cursor-not-allowed"
+                        >
+                          {isAnnotating ? (
+                            <>
+                              <span className="animate-spin mr-2">⏳</span>
+                              Annotating...
+                            </>
+                          ) : (
+                            <>🤖 Annotate Entities</>
+                          )}
+                        </button>
                         <div className="px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm">
                           {getCurrentEntities().length} entities
                         </div>
