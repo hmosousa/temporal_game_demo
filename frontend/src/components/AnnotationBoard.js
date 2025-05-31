@@ -249,7 +249,7 @@ const AnnotationBoard = ({
       <div className="w-full">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-500">Temporal Relations</span>
-          <span className="text-xs text-gray-600">{nAnnotated} annotated</span>
+          <span className="text-xs text-gray-600">{nAnnotated}/{nRelations} annotated</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div 
