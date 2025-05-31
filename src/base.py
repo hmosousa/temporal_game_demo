@@ -41,11 +41,16 @@ NEW_TOKENS = [
 
 class Endpoint:
     def __init__(
-        self, id: str, text: str, type: Literal["start", "end"], offsets: List[int]
+        self,
+        id: str,
+        text: str,
+        type_: Literal["start", "end", "instant"],
+        offsets: List[int],
+        **kwargs,
     ):
         self.id = id
         self.text = text
-        self.type = type
+        self.type = type_
         self.offsets = offsets
 
     def __str__(self) -> str:
@@ -77,14 +82,22 @@ class EntityPair:
 
 class PointRelation:
     def __init__(self, source: str, target: str, relation: Literal["<", ">", "="]):
-        if not (source.startswith("start") or source.startswith("end")):
+        if not (
+            source.startswith("start")
+            or source.startswith("end")
+            or source.startswith("instant")
+        ):
             raise ValueError(
-                f"Invalid source: {source}. It must start with 'start' or 'end'."
+                f"Invalid source: {source}. It must start with 'start', 'end' or 'instant'."
             )
 
-        if not (target.startswith("start") or target.startswith("end")):
+        if not (
+            target.startswith("start")
+            or target.startswith("end")
+            or target.startswith("instant")
+        ):
             raise ValueError(
-                f"Invalid target: {target}. It must start with 'start' or 'end'."
+                f"Invalid target: {target}. It must start with 'start', 'end' or 'instant'."
             )
 
         if relation not in RELATIONS:
@@ -157,26 +170,6 @@ class PointRelation:
         return self.target.split(" ")[1]
 
 
-def tlink_to_point_relations(tlink: TLink) -> List[PointRelation]:
-    pr = [r for r in tlink.relation.point.relation]
-
-    return [
-        PointRelation(f"start {tlink.source_id}", f"start {tlink.target_id}", pr[0]),
-        PointRelation(f"start {tlink.source_id}", f"end {tlink.target_id}", pr[1]),
-        PointRelation(f"end {tlink.source_id}", f"start {tlink.target_id}", pr[2]),
-        PointRelation(f"end {tlink.source_id}", f"end {tlink.target_id}", pr[3]),
-    ]
-
-
-def tlinks_to_point_relations(tlinks: List[TLink]) -> Set[PointRelation]:
-    relations = []
-    for tlink in tlinks:
-        if tlink.source.id == tlink.target.id:
-            continue
-        relations += tlink_to_point_relations(tlink)
-    return set(relations)
-
-
 class Timeline:
     def __init__(self, relations: List[PointRelation] | None = None):
         if relations is not None:
@@ -209,16 +202,17 @@ class Timeline:
         none_relations = [rel for rel in dict_relations if rel["relation"] == "-"]
 
         # Add the self relations
-        unique_entities = set(
+        unique_interval_entities = set(
             [
                 entity.split()[-1]
                 for relation in dict_relations
                 for entity in [relation["source"], relation["target"]]
+                if entity.split()[0] != "instant"
             ]
         )
         dict_relations += [
             PointRelation(f"start {entity}", f"end {entity}", "<").to_dict()
-            for entity in unique_entities
+            for entity in unique_interval_entities
         ]
 
         inferred_relations = _compute_point_temporal_closure(dict_relations)

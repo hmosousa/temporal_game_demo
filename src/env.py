@@ -116,11 +116,19 @@ class TemporalGame:
         self.pred_doc["relations"] = []
 
         # Initialize endpoints and contexts
-        self.endpoints = [
-            Endpoint(**ent, type=endpoint)
+        internal_endpoints = [
+            Endpoint(**ent, type_=endpoint)
             for ent in doc["entities"]
             for endpoint in ENDPOINTS
+            if ent.get("type", "interval") == "interval"
         ]
+        instant_endpoints = [
+            Endpoint(**ent, type_="instant")
+            for ent in doc["entities"]
+            if ent.get("type", "interval") == "instant"
+        ]
+        self.endpoints = internal_endpoints + instant_endpoints
+        
         self.n_endpoints = len(self.endpoints)
 
         self.idx2edp_pair = {}
