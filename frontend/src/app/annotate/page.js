@@ -23,17 +23,17 @@ export default function Annotate() {
     if (fileData.dct) {
       const dctPrefix = `Document creation time: ${fileData.dct}\n`
       const dctOffset = dctPrefix.length
-      
+
       // Prepend DCT to text
       processedText = dctPrefix + fileData.text
-      
+
       // Adjust all existing entity offsets
       processedEntities = processedEntities.map(entity => ({
         ...entity,
         start: entity.start + dctOffset,
         end: entity.end + dctOffset
       }))
-      
+
       // Add DCT as an entity
       const dctStartPos = 'Document creation time: '.length
       const dctEndPos = dctStartPos + fileData.dct.length
@@ -45,7 +45,7 @@ export default function Annotate() {
         id: 'dct-' + Date.now(),
         isDCT: true // Mark as DCT entity
       }
-      
+
       processedEntities.unshift(dctEntity) // Add DCT entity at the beginning
     }
 
@@ -78,8 +78,15 @@ export default function Annotate() {
       ]
     }
 
+    const sampleFileDataLarge = {
+      dct: "08-16-90",
+      text: "Bush, commenting on the two-week gulf crisis from his vacation home in Maine, said he saw little reason to be optimistic about a settlement of the dispute, which stems from Iraq's invasion of oil-wealthy Kuwait and its subsequent military buildup on the border of Saudi Arabia.",
+      entities:[]
+    }
+
     const processed = processFileWithDCT(sampleFileData)
-    
+    const processedLarge = processFileWithDCT(sampleFileDataLarge)
+
     const sampleFile = {
       name: "sample.json",
       size: 0,
@@ -92,9 +99,22 @@ export default function Annotate() {
       uploadedAt: new Date().toISOString(),
       isSystemFile: true
     }
-    
-    setUploadedFiles([sampleFile])
-    
+
+    const sampleFileLarge = {
+      name: "large.json",
+      size: 0,
+      type: "application/json",
+      data: {
+        ...sampleFileDataLarge,
+        processedText: processedLarge.text,
+        processedEntities: processedLarge.entities
+      },
+      uploadedAt: new Date().toISOString(),
+      isSystemFile: true
+    }
+
+    setUploadedFiles([sampleFile, sampleFileLarge])
+
     // Initialize entities for sample file
     setFileEntities({
       "sample.json": processed.entities
@@ -113,10 +133,10 @@ export default function Annotate() {
         }
       }
     })
-    
+
     setUploadedFiles(prev => [...prev, ...processedFiles])
     setShowUpload(false)
-    
+
     // Initialize entities for new files
     const newFileEntities = {}
     processedFiles.forEach(file => {
@@ -127,9 +147,9 @@ export default function Annotate() {
       }))
       newFileEntities[file.name] = entitiesWithIds
     })
-    
+
     setFileEntities(prev => ({ ...prev, ...newFileEntities }))
-    
+
     if (processedFiles.length > 0) {
       setCurrentFile(processedFiles[0])
     }
@@ -141,16 +161,16 @@ export default function Annotate() {
 
   const handleDeleteFile = (fileToDelete) => {
     if (fileToDelete.isSystemFile) return // Don't allow deleting system files
-    
+
     setUploadedFiles(prev => prev.filter(file => file !== fileToDelete))
-    
+
     // Clean up entities for deleted file
     setFileEntities(prev => {
       const updated = { ...prev }
       delete updated[fileToDelete.name]
       return updated
     })
-    
+
     if (currentFile === fileToDelete) {
       setCurrentFile(null)
     }
@@ -158,7 +178,7 @@ export default function Annotate() {
 
   const handleEntitiesChange = useCallback((newEntities) => {
     if (!currentFile) return
-    
+
     setFileEntities(prev => ({
       ...prev,
       [currentFile.name]: newEntities
@@ -174,15 +194,15 @@ export default function Annotate() {
     if (!currentFile) return
 
     const entities = getCurrentEntities()
-    
+
     // Convert back to original text offsets for saving
     let saveEntities = [...entities]
     let originalText = currentFile.data.text
-    
+
     if (currentFile.data.dct) {
       const dctPrefix = `Document creation time: ${currentFile.data.dct}\n`
       const dctOffset = dctPrefix.length
-      
+
       // Remove DCT entity and adjust offsets back to original text
       saveEntities = entities
         .filter(entity => !entity.isDCT) // Remove DCT entity
@@ -305,7 +325,7 @@ export default function Annotate() {
     try {
       // Send the full processed text including DCT prefix for annotation
       const textToAnnotate = currentFile.data.processedText || currentFile.data.text
-      
+
       const response = await fetch('/api/annotate_entities', {
         method: 'POST',
         headers: {
@@ -322,28 +342,28 @@ export default function Annotate() {
       }
 
       const data = await response.json()
-      
+
       // Process the detected entities and merge with existing ones
       const detectedEntities = data.entities || []
       const currentEntities = getCurrentEntities()
-      
+
       // No need to adjust offsets since we're sending the processed text directly
       const adjustedDetectedEntities = detectedEntities.map((entity, idx) => ({
         ...entity,
         id: Date.now() + idx,
         type: entity.type || 'interval' // Default to interval if not specified
       }))
-      
+
       // Filter out overlapping entities to avoid conflicts
       const nonOverlappingEntities = adjustedDetectedEntities.filter(newEntity => {
-        return !currentEntities.some(existingEntity => 
+        return !currentEntities.some(existingEntity =>
           (newEntity.start < existingEntity.end && newEntity.end > existingEntity.start)
         )
       })
-      
+
       // Merge with existing entities
       const mergedEntities = [...currentEntities, ...nonOverlappingEntities]
-      
+
       // Update the entities for the current file
       setFileEntities(prev => ({
         ...prev,
@@ -364,8 +384,8 @@ export default function Annotate() {
         <div className="max-w-7xl mx-auto p-8">
           {/* Header */}
           <div className="flex items-center mb-8 gap-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
             >
               ← Home
@@ -389,7 +409,7 @@ export default function Annotate() {
                     + Add
                   </button>
                 </div>
-                
+
                 {/* Upload Interface */}
                 {showUpload && (
                   <div className="mb-4 p-3 bg-gray-50 rounded-lg">
@@ -416,15 +436,14 @@ export default function Annotate() {
                       const fileEntityCount = (fileEntities[file.name] || []).length
                       const lastSaved = file.data.last_saved
                       const isCurrentFile = currentFile === file
-                      
+
                       return (
-                        <div 
-                          key={index} 
-                          className={`group relative p-3 rounded-lg border cursor-pointer transition-colors ${
-                            isCurrentFile
-                              ? 'bg-blue-50 border-blue-200' 
-                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                          }`}
+                        <div
+                          key={index}
+                          className={`group relative p-3 rounded-lg border cursor-pointer transition-colors ${isCurrentFile
+                            ? 'bg-blue-50 border-blue-200'
+                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            }`}
                           onClick={() => handleFileSelect(file)}
                         >
                           <div className="flex items-center justify-between">
@@ -443,7 +462,7 @@ export default function Annotate() {
                                 )}
                               </div>
                             </div>
-                            
+
                             {!file.isSystemFile && (
                               <button
                                 onClick={(e) => {
@@ -505,7 +524,7 @@ export default function Annotate() {
                         <div className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm">
                           {relationsCount} relations
                         </div>
-                        <button 
+                        <button
                           onClick={saveAnnotations}
                           data-save-button
                           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
@@ -522,10 +541,10 @@ export default function Annotate() {
                       onEntitiesChange={handleEntitiesChange}
                       dct={null} // Don't pass DCT since it's now part of the text
                     />
-                    
+
                     {/* Annotation Board Component */}
                     <div className="mt-6">
-                      
+
                       <AnnotationBoard
                         text={currentFile.data.processedText || currentFile.data.text}
                         entities={getCurrentEntities()}
