@@ -15,6 +15,7 @@ from src.base import (
 )
 from src.constants import HF_DIR
 from src.utils import add_tags
+from src.relation_classifier import RandomRelationClassifier
 
 UNCLASSIFIED_POSITION = -1
 MASKED_POSITION = -2
@@ -214,10 +215,17 @@ class TemporalGame:
     def init_state(self):
         context = add_tags(self.true_doc["text"], self.true_doc["entities"])
         board = self.make_board()
+        random_scores = RandomRelationClassifier().score(self.true_doc["text"], self.true_timeline.relations)
+        random_scores_board = copy.deepcopy(board)
+        for score, relation in zip(random_scores, self.true_timeline.relations):
+            src_idx, tgt_idx = self.edp_pair2idx[(relation["source"], relation["target"])]
+            random_scores_board[src_idx, tgt_idx] = score
+        
         endpoints = [f"{edp.type} {edp.text}" for edp in self.endpoints]
         return {
             "context": context,
             "board": board,
+            "random_scores": random_scores_board,
             "endpoints": endpoints,
             "entities": [ent["text"] for ent in self.true_doc["entities"]],
         }

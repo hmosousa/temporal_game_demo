@@ -61,6 +61,7 @@ def new_game():
             "game_id": game_id,
             "text": obs["context"],
             "board": obs["board"],
+            "random_scores": obs["random_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "reward": 0,
@@ -101,6 +102,7 @@ def step():
             "board": obs["board"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
+            "random_scores": obs["random_scores"],
             "reward": game_data["reward"],
             "terminated": terminated,
             "is_success": info["is_success"],
@@ -144,6 +146,7 @@ def undo():
         response_data = {
             "text": obs["context"],
             "board": obs["board"],
+            "random_scores": obs["random_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "reward": game_data["reward"],  # Keep current total reward
@@ -220,6 +223,7 @@ def new_annotation_session():
                 "session_id": session_id,
                 "text": text,
                 "board": obs["board"],
+                "random_scores": obs["random_scores"],
                 "endpoints": obs["endpoints"],
                 "entities": obs["entities"],
                 "has_incoherence": False,
@@ -271,6 +275,7 @@ def annotation_step():
 
         response_data = {
             "board": obs["board"],
+            "random_scores": obs["random_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,
@@ -322,6 +327,7 @@ def annotation_undo():
 
         response_data = {
             "board": obs["board"],
+            "random_scores": obs["random_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,
@@ -358,6 +364,7 @@ def get_annotation_results():
             "dct": session_data["dct"],
             "relations": session_data["relations"],
             "board": session_data["obs"]["board"],
+            "random_scores": session_data["obs"]["random_scores"],
             "endpoints": session_data["obs"]["endpoints"],
             "total_relations": len(session_data["relations"]),
         }
