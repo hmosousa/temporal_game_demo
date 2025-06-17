@@ -215,10 +215,9 @@ class TemporalGame:
     def init_state(self):
         context = add_tags(self.true_doc["text"], self.true_doc["entities"])
         board = self.make_board()
-        random_scores = RandomRelationClassifier().score(self.true_doc["text"], self.true_timeline.relations)
-        random_scores_board = np.zeros_like(board)
-        for score, relation in zip(random_scores, self.true_timeline.relations):
-            src_idx, tgt_idx = self.edp_pair2idx[(relation["source"], relation["target"])]
+        random_scores = RandomRelationClassifier().score(self.true_doc["text"], self.edp_pair2idx.keys())
+        random_scores_board = np.zeros_like(board, dtype=float)
+        for score, (src_idx, tgt_idx) in zip(random_scores, self.edp_pair2idx.values()):
             random_scores_board[src_idx, tgt_idx] = score
         
         endpoints = [f"{edp.type} {edp.text}" for edp in self.endpoints]

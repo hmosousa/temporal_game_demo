@@ -11,9 +11,7 @@ def doc():
             {"id": "e0", "text": "The", "type": "interval", "offsets": [0, 3]},
             {"id": "e2", "text": "jumps", "type": "instant", "offsets": [11, 15]},
         ],
-        "relations": [
-            {"source": "start e0", "target": "instant e2", "relation": ">"},
-        ],
+        "relations": [],
     }
 
 
