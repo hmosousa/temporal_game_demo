@@ -318,6 +318,14 @@ export default function Annotate() {
     setRelationsCount(count)
   }, [])
 
+  // Export annotations function
+  const handleExportAnnotations = useCallback(() => {
+    // This will be called by the AnnotationBoard component
+    if (window.exportAnnotationsRef) {
+      window.exportAnnotationsRef()
+    }
+  }, [])
+
   // Automatic entity annotation function
   const annotateEntitiesAutomatically = async () => {
     if (!currentFile) return
@@ -553,11 +561,10 @@ export default function Annotate() {
                           {relationsCount} relations
                         </div>
                         <button
-                          onClick={saveAnnotations}
-                          data-save-button
+                          onClick={handleExportAnnotations}
                           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
                         >
-                          💾 Save
+                          📥 Export
                         </button>
                       </div>
                     </div>
@@ -578,6 +585,7 @@ export default function Annotate() {
                         dct={currentFile.data.dct}
                         onRelationsChange={handleRelationsChange}
                         mode={annotationMode}
+                        onExport={handleExportAnnotations}
                       />
                     </div>
                   </div>

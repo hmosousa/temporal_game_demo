@@ -8,7 +8,8 @@ const AnnotationBoard = ({
   entities, 
   dct, 
   onRelationsChange,
-  mode = 'D' // 'D' for Default, 'R' for Random
+  mode = 'D', // 'D' for Default, 'R' for Random
+  onExport
 }) => {
   const [sessionId, setSessionId] = useState(null)
   const [boardData, setBoardData] = useState(null)
@@ -26,6 +27,14 @@ const AnnotationBoard = ({
       initializeAnnotationSession()
     }
   }, [entities, text, dct])
+
+  // Expose export function to parent component
+  useEffect(() => {
+    window.exportAnnotationsRef = exportAnnotations
+    return () => {
+      window.exportAnnotationsRef = null
+    }
+  }, [sessionId])
 
   const initializeAnnotationSession = async () => {
     try {
@@ -179,14 +188,19 @@ const AnnotationBoard = ({
 
       const data = await response.json()
       
-      // Create export data
+      // Transform relations to cleaner format
+      const cleanRelations = data.relations.map(relation => ({
+        source: boardData.endpoints[relation.position[0]],
+        target: boardData.endpoints[relation.position[1]],
+        relation: relation.relation,
+      }))
+      
+      // Create export data with improved clarity
       const exportData = {
-        text: data.text,
-        entities: data.entities,
-        dct: data.dct,
-        relations: data.relations,
-        total_relations: data.total_relations,
-        annotated_at: new Date().toISOString()
+        text: text, // Use the processed text that includes DCT
+        entities: entities, // Use the current entities which include IDs and DCT
+        dct: dct,
+        relations: cleanRelations
       }
 
       const dataStr = JSON.stringify(exportData, null, 2)
