@@ -14,6 +14,7 @@ export default function Annotate() {
   const [fileEntities, setFileEntities] = useState({}) // Store entities per file
   const [relationsCount, setRelationsCount] = useState(0)
   const [isAnnotating, setIsAnnotating] = useState(false)
+  const [annotationMode, setAnnotationMode] = useState('D') // 'D' for Default, 'R' for Random
 
   // Helper function to process text and entities with DCT
   const processFileWithDCT = (fileData) => {
@@ -504,6 +505,31 @@ export default function Annotate() {
                         Annotating: {currentFile.name}
                       </h2>
                       <div className="flex gap-2">
+                        {/* Mode Selection Buttons */}
+                        <div className="flex bg-gray-100 rounded-lg p-1">
+                          <button
+                            onClick={() => setAnnotationMode('D')}
+                            className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                              annotationMode === 'D'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Default mode - show all entity pairs"
+                          >
+                            D
+                          </button>
+                          <button
+                            onClick={() => setAnnotationMode('R')}
+                            className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                              annotationMode === 'R'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Random mode - prioritize highest-scoring unannotated pairs"
+                          >
+                            R
+                          </button>
+                        </div>
                         <button
                           onClick={annotateEntitiesAutomatically}
                           disabled={isAnnotating}
@@ -544,12 +570,12 @@ export default function Annotate() {
 
                     {/* Annotation Board Component */}
                     <div className="mt-6">
-
                       <AnnotationBoard
                         text={currentFile.data.processedText || currentFile.data.text}
                         entities={getCurrentEntities()}
                         dct={currentFile.data.dct}
                         onRelationsChange={handleRelationsChange}
+                        mode={annotationMode}
                       />
                     </div>
                   </div>

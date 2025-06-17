@@ -22,7 +22,7 @@ const RELATION_NAMES = {
 const UNCLASSIFIED_POSITION = -1
 const MASKED_POSITION = -2
 
-export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabled = false, hasTemporalIncoherence = false }) {
+export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabled = false, hasTemporalIncoherence = false, mode = 'D', currentHighestPair = null }) {
   const [selectedCell, setSelectedCell] = useState(null)
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
@@ -186,6 +186,11 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
                       selectedCell.rowIdx === originalRowIdx && 
                       selectedCell.colIdx === originalColIdx
     
+    const isHighlightedInRandomMode = mode === 'R' && 
+                                    currentHighestPair && 
+                                    currentHighestPair.row === originalRowIdx && 
+                                    currentHighestPair.col === originalColIdx
+    
     const classes = [styles.gridCell]
     
     if (isMasked) {
@@ -195,6 +200,10 @@ export default function GameBoard({ board, endpoints, onMakeMove, onUndo, disabl
     
     if (disabled) {
       classes.push(styles.readonly)
+    }
+    
+    if (isHighlightedInRandomMode) {
+      classes.push(styles.randomModeHighlight)
     }
     
     if (value !== UNCLASSIFIED_POSITION) {
@@ -364,4 +373,9 @@ GameBoard.propTypes = {
   onUndo: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
   hasTemporalIncoherence: PropTypes.bool,
+  mode: PropTypes.string,
+  currentHighestPair: PropTypes.shape({
+    row: PropTypes.number.isRequired,
+    col: PropTypes.number.isRequired,
+  }),
 }
