@@ -501,34 +501,34 @@ export default function Annotate() {
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        Annotating: {currentFile.name}
-                      </h2>
                       <div className="flex gap-2">
                         {/* Mode Selection Buttons */}
-                        <div className="flex bg-gray-100 rounded-lg p-1">
-                          <button
-                            onClick={() => setAnnotationMode('D')}
-                            className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                              annotationMode === 'D'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                            title="Default mode - show all entity pairs"
-                          >
-                            D
-                          </button>
-                          <button
-                            onClick={() => setAnnotationMode('R')}
-                            className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                              annotationMode === 'R'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                            title="Random mode - prioritize highest-scoring unannotated pairs"
-                          >
-                            R
-                          </button>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+                          <span className="font-medium">Annotation Mode:</span>
+                          <div className="flex bg-white/20 rounded p-1">
+                            <button
+                              onClick={() => setAnnotationMode('D')}
+                              className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                                annotationMode === 'D'
+                                  ? 'bg-white text-blue-600 shadow-sm'
+                                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                              }`}
+                              title="Default mode - show all entity pairs"
+                            >
+                              D
+                            </button>
+                            <button
+                              onClick={() => setAnnotationMode('R')}
+                              className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                                annotationMode === 'R'
+                                  ? 'bg-white text-blue-600 shadow-sm'
+                                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                              }`}
+                              title="Random mode - prioritize highest-scoring unannotated pairs"
+                            >
+                              R
+                            </button>
+                          </div>
                         </div>
                         <button
                           onClick={annotateEntitiesAutomatically}
