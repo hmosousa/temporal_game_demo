@@ -502,6 +502,20 @@ export default function Annotate() {
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex gap-2">
+                        <button
+                          onClick={annotateEntitiesAutomatically}
+                          disabled={isAnnotating}
+                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm disabled:bg-purple-400 disabled:cursor-not-allowed"
+                        >
+                          {isAnnotating ? (
+                            <>
+                              <span className="animate-spin mr-2">⏳</span>
+                              Annotating...
+                            </>
+                          ) : (
+                            <>🤖 Annotate Entities</>
+                          )}
+                        </button>
                         {/* Mode Selection Buttons */}
                         <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
                           <span className="font-medium">Annotation Mode:</span>
@@ -530,20 +544,8 @@ export default function Annotate() {
                             </button>
                           </div>
                         </div>
-                        <button
-                          onClick={annotateEntitiesAutomatically}
-                          disabled={isAnnotating}
-                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm disabled:bg-purple-400 disabled:cursor-not-allowed"
-                        >
-                          {isAnnotating ? (
-                            <>
-                              <span className="animate-spin mr-2">⏳</span>
-                              Annotating...
-                            </>
-                          ) : (
-                            <>🤖 Annotate Entities</>
-                          )}
-                        </button>
+                      </div>
+                      <div className="flex gap-2">
                         <div className="px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm">
                           {getCurrentEntities().length} entities
                         </div>
