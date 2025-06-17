@@ -374,17 +374,9 @@
 }
 
 .randomModeHighlight {
-  background-color: #fef3c7 !important;
-  border: 2px solid #f59e0b !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3), 0 2px 8px rgba(245, 158, 11, 0.4) !important;
-  animation: pulse-highlight 2s infinite;
+  /* Removed yellow highlight styling for random mode */
 }
 
 @keyframes pulse-highlight {
-  0%, 100% {
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3), 0 2px 8px rgba(245, 158, 11, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5), 0 4px 12px rgba(245, 158, 11, 0.6);
-  }
+  /* Removed pulse animation for random mode */
 }
