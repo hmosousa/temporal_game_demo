@@ -8,12 +8,13 @@ const AnnotationBoard = ({
   entities, 
   dct, 
   onRelationsChange,
-  mode = 'D', // 'D' for Default, 'R' for Random
+  mode = 'D', // 'D' for Default, 'R' for Random, 'G' for Guided
   onExport
 }) => {
   const [sessionId, setSessionId] = useState(null)
   const [boardData, setBoardData] = useState(null)
   const [randomScores, setRandomScores] = useState(null)
+  const [guidedScores, setGuidedScores] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [hasIncoherence, setHasIncoherence] = useState(false)
@@ -66,6 +67,7 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setRandomScores(data.random_scores)
+      setGuidedScores(data.guided_scores)
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(0)
       setNRelations(data.n_relations || 0)
@@ -106,6 +108,7 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setRandomScores(data.random_scores)
+      setGuidedScores(data.guided_scores)
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(data.n_annotated || 0)
       setNRelations(data.n_relations || 0)
@@ -150,6 +153,7 @@ const AnnotationBoard = ({
         entities: data.entities
       })
       setRandomScores(data.random_scores)
+      setGuidedScores(data.guided_scores)
       setHasIncoherence(data.has_incoherence || false)
       setNAnnotated(data.n_annotated || 0)
       setNRelations(data.n_relations || 0)
@@ -220,9 +224,12 @@ const AnnotationBoard = ({
     }
   }
 
-  // Find the highest-scoring unannotated pair for random mode
+  // Find the highest-scoring unannotated pair for random or guided mode
   const getHighestScoringPair = () => {
-    if (!boardData || !randomScores || mode !== 'R') return null
+    if (!boardData || mode === 'D') return null
+    
+    const scores = mode === 'R' ? randomScores : mode === 'G' ? guidedScores : null
+    if (!scores) return null
 
     const board = boardData.board
     let maxScore = -1
@@ -232,8 +239,8 @@ const AnnotationBoard = ({
     for (let i = 0; i < board.length; i++) {
       for (let j = 0; j < board[i].length; j++) {
         // Check if this cell is unannotated (value is -1) and not masked (value is -2)
-        if (board[i][j] === -1 && randomScores[i] && randomScores[i][j] > maxScore) {
-          maxScore = randomScores[i][j]
+        if (board[i][j] === -1 && scores[i] && scores[i][j] > maxScore) {
+          maxScore = scores[i][j]
           bestPair = { row: i, col: j, score: maxScore }
         }
       }
@@ -242,19 +249,19 @@ const AnnotationBoard = ({
     return bestPair
   }
 
-  // Update current highest pair when board data changes and in random mode
+  // Update current highest pair when board data changes and in random/guided mode
   useEffect(() => {
-    if (mode === 'R' && boardData && randomScores) {
+    if ((mode === 'R' || mode === 'G') && boardData && (mode === 'R' ? randomScores : guidedScores)) {
       const highestPair = getHighestScoringPair()
       setCurrentHighestPair(highestPair)
     } else {
       setCurrentHighestPair(null)
     }
-  }, [boardData, randomScores, mode])
+  }, [boardData, randomScores, guidedScores, mode])
 
-  // Create filtered board data for random mode
+  // Create filtered board data for random/guided mode
   const getFilteredBoardData = () => {
-    if (mode !== 'R' || !boardData || !currentHighestPair) {
+    if ((mode !== 'R' && mode !== 'G') || !boardData || !currentHighestPair) {
       return boardData
     }
 
@@ -341,6 +348,35 @@ const AnnotationBoard = ({
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center gap-2">
             <span className="text-green-600 font-medium">✅ Random Mode Complete:</span>
+            <span className="text-sm text-gray-700">
+              All entity pairs have been annotated! Switch to Default mode to see the full board.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Guided Mode Status */}
+      {mode === 'G' && currentHighestPair && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-600 font-medium">🎯 Guided Mode:</span>
+              <span className="text-sm text-gray-700">
+                Showing highest-scoring pair (score: {currentHighestPair.score.toFixed(3)})
+              </span>
+            </div>
+            <div className="text-sm text-gray-500">
+              {boardData?.endpoints?.[currentHighestPair.row]} → {boardData?.endpoints?.[currentHighestPair.col]}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guided Mode Completion Status */}
+      {mode === 'G' && !currentHighestPair && boardData && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-green-600 font-medium">✅ Guided Mode Complete:</span>
             <span className="text-sm text-gray-700">
               All entity pairs have been annotated! Switch to Default mode to see the full board.
             </span>

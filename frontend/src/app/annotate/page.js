@@ -550,6 +550,17 @@ export default function Annotate() {
                             >
                               R
                             </button>
+                            <button
+                              onClick={() => setAnnotationMode('G')}
+                              className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                                annotationMode === 'G'
+                                  ? 'bg-white text-blue-600 shadow-sm'
+                                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                              }`}
+                              title="Guided mode - prioritize guided-scoring unannotated pairs"
+                            >
+                              G
+                            </button>
                           </div>
                         </div>
                       </div>

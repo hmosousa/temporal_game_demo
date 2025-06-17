@@ -224,6 +224,7 @@ def new_annotation_session():
                 "text": text,
                 "board": obs["board"],
                 "random_scores": obs["random_scores"],
+                "guided_scores": obs["guided_scores"],
                 "endpoints": obs["endpoints"],
                 "entities": obs["entities"],
                 "has_incoherence": False,
@@ -276,6 +277,7 @@ def annotation_step():
         response_data = {
             "board": obs["board"],
             "random_scores": obs["random_scores"],
+            "guided_scores": obs["guided_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,
@@ -328,6 +330,7 @@ def annotation_undo():
         response_data = {
             "board": obs["board"],
             "random_scores": obs["random_scores"],
+            "guided_scores": obs["guided_scores"],
             "endpoints": obs["endpoints"],
             "entities": obs["entities"],
             "has_incoherence": has_incoherence,

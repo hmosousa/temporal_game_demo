@@ -215,16 +215,25 @@ class TemporalGame:
     def init_state(self):
         context = add_tags(self.true_doc["text"], self.true_doc["entities"])
         board = self.make_board()
+        
+        # Compute random scores
         random_scores = RandomRelationClassifier().score(self.true_doc["text"], self.edp_pair2idx.keys())
         random_scores_board = np.zeros_like(board, dtype=float)
         for score, (src_idx, tgt_idx) in zip(random_scores, self.edp_pair2idx.values()):
             random_scores_board[src_idx, tgt_idx] = score
+            
+        # Compute guided scores
+        guided_scores = RandomRelationClassifier().score(self.true_doc["text"], self.edp_pair2idx.keys())  # TODO: Use guided classifier
+        guided_scores_board = np.zeros_like(board, dtype=float)
+        for score, (src_idx, tgt_idx) in zip(guided_scores, self.edp_pair2idx.values()):
+            guided_scores_board[src_idx, tgt_idx] = score
         
         endpoints = [f"{edp.type} {edp.text}" for edp in self.endpoints]
         return {
             "context": context,
             "board": board,
             "random_scores": random_scores_board.tolist(),
+            "guided_scores": guided_scores_board.tolist(),
             "endpoints": endpoints,
             "entities": [ent["text"] for ent in self.true_doc["entities"]],
         }
