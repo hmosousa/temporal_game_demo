@@ -6,6 +6,8 @@ import Footer from '../../components/Footer'
 import FileUpload from '../../components/FileUpload'
 import TextHighlighter from '../../components/TextHighlighter'
 import AnnotationBoard from '../../components/AnnotationBoard'
+import DynamicModeBoard from '../../components/DynamicModeBoard'
+import ModeSelector from '../../components/ModeSelector'
 
 export default function Annotate() {
   const [uploadedFiles, setUploadedFiles] = useState([])
@@ -14,6 +16,8 @@ export default function Annotate() {
   const [fileEntities, setFileEntities] = useState({}) // Store entities per file
   const [relationsCount, setRelationsCount] = useState(0)
   const [isAnnotating, setIsAnnotating] = useState(false)
+  const [annotationMode, setAnnotationMode] = useState('standard') // 'standard', 'dynamic-guided', 'dynamic-random'
+  const [isAnnotationSessionActive, setIsAnnotationSessionActive] = useState(false)
 
   // Helper function to process text and entities with DCT
   const processFileWithDCT = (fileData) => {
@@ -313,9 +317,26 @@ export default function Annotate() {
     URL.revokeObjectURL(url)
   }
 
-  const handleRelationsChange = useCallback((count) => {
+  const handleModeChange = (newMode) => {
+    if (isAnnotationSessionActive) {
+      if (confirm('Changing modes will reset your current annotation session. Continue?')) {
+        setIsAnnotationSessionActive(false)
+        setRelationsCount(0)
+        setAnnotationMode(newMode)
+      }
+    } else {
+      setAnnotationMode(newMode)
+    }
+  }
+
+  const handleRelationsChange = (count) => {
     setRelationsCount(count)
-  }, [])
+    setIsAnnotationSessionActive(count > 0)
+  }
+
+  const handleDynamicComplete = () => {
+    setIsAnnotationSessionActive(false)
+  }
 
   // Automatic entity annotation function
   const annotateEntitiesAutomatically = async () => {
@@ -375,6 +396,45 @@ export default function Annotate() {
       alert(`Error annotating entities: ${error.message}`)
     } finally {
       setIsAnnotating(false)
+    }
+  }
+
+  const renderAnnotationInterface = () => {
+    const entities = getCurrentEntities()
+    const text = currentFile.data.processedText || currentFile.data.text
+    const dct = currentFile.data.dct
+
+    if (annotationMode === 'standard') {
+      return (
+        <AnnotationBoard
+          text={text}
+          entities={entities}
+          dct={dct}
+          onRelationsChange={handleRelationsChange}
+        />
+      )
+    } else if (annotationMode === 'dynamic-guided') {
+      return (
+        <DynamicModeBoard
+          text={text}
+          entities={entities}
+          dct={dct}
+          mode="guided"
+          onRelationsChange={handleRelationsChange}
+          onComplete={handleDynamicComplete}
+        />
+      )
+    } else if (annotationMode === 'dynamic-random') {
+      return (
+        <DynamicModeBoard
+          text={text}
+          entities={entities}
+          dct={dct}
+          mode="random"
+          onRelationsChange={handleRelationsChange}
+          onComplete={handleDynamicComplete}
+        />
+      )
     }
   }
 
@@ -542,15 +602,18 @@ export default function Annotate() {
                       dct={null} // Don't pass DCT since it's now part of the text
                     />
 
-                    {/* Annotation Board Component */}
-                    <div className="mt-6">
-
-                      <AnnotationBoard
-                        text={currentFile.data.processedText || currentFile.data.text}
-                        entities={getCurrentEntities()}
-                        dct={currentFile.data.dct}
-                        onRelationsChange={handleRelationsChange}
+                    {/* Mode Selector */}
+                    <div className="mb-6">
+                      <ModeSelector
+                        currentMode={annotationMode}
+                        onModeChange={handleModeChange}
+                        disabled={isAnnotationSessionActive}
                       />
+                    </div>
+
+                    {/* Annotation Interface */}
+                    <div className="mt-6">
+                      {renderAnnotationInterface()}
                     </div>
                   </div>
                 </div>

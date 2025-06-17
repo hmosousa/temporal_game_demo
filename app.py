@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request, session
 from src.env import TemporalGame, load_documents
 from src.event_tagger import EventTagger
 from src.timex_tagger import TimexTagger
+from src.dynamic_mode import DynamicModeManager
 
 # Configure logging
 logging.basicConfig(
@@ -25,6 +26,11 @@ app.secret_key = os.environ.get("SECRET_KEY", "temporal_game_secret")
 games = {}
 # Dictionary to store annotation sessions
 annotation_sessions = {}
+# Dictionary to store dynamic mode sessions
+dynamic_sessions = {}
+
+# Dynamic mode manager
+dynamic_manager = DynamicModeManager()
 
 
 @app.route("/api/new_game", methods=["POST"])
@@ -423,6 +429,220 @@ def annotate_entities():
     except Exception as e:
         logger.error(f"Error during automatic entity annotation: {str(e)}", exc_info=True)
         return jsonify({"error": f"Failed to annotate entities: {str(e)}"}), 500
+
+
+@app.route("/api/new_dynamic_session", methods=["POST"])
+def new_dynamic_session():
+    """Create a new dynamic mode annotation session."""
+    logger.info("Creating new dynamic mode annotation session")
+    
+    data = request.get_json() or {}
+    text = data.get("text")
+    entities = data.get("entities", [])
+    dct = data.get("dct")
+    mode = data.get("mode", "guided")  # 'guided' or 'random'
+    
+    if not text:
+        logger.error("Missing text for dynamic annotation session")
+        return jsonify({"error": "Text is required"}), 400
+    
+    if len(entities) < 2:
+        logger.error("Need at least 2 entities for dynamic annotation")
+        return jsonify({"error": "At least 2 entities required"}), 400
+    
+    if mode not in ["guided", "random"]:
+        logger.error(f"Invalid mode: {mode}")
+        return jsonify({"error": "Mode must be 'guided' or 'random'"}), 400
+    
+    try:
+        session_id = str(uuid.uuid4())
+        session_data = dynamic_manager.create_dynamic_session(text, entities, dct, mode)
+        
+        dynamic_sessions[session_id] = session_data
+        session["dynamic_session_id"] = session_id
+        
+        # Get current pair info
+        pair_info = dynamic_manager.get_next_pair_info(session_data)
+        progress = dynamic_manager.get_session_progress(session_data)
+        
+        logger.info(f"Dynamic session created with ID: {session_id}, mode: {mode}")
+        
+        response_data = {
+            "session_id": session_id,
+            "mode": mode,
+            "text": text,
+            "board": session_data["current_obs"]["board"] if session_data["current_game"] else None,
+            "endpoints": session_data["current_obs"]["endpoints"] if session_data["current_game"] else None,
+            "entities": session_data["current_obs"]["entities"] if session_data["current_game"] else None,
+            "current_pair": pair_info,
+            "progress": progress,
+            "has_incoherence": False,
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating dynamic session: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Failed to create dynamic session: {str(e)}"}), 500
+
+
+@app.route("/api/dynamic_step", methods=["POST"])
+def dynamic_step():
+    """Take a step in dynamic mode annotation."""
+    data = request.json
+    session_id = data.get("session_id", session.get("dynamic_session_id"))
+    
+    if not session_id or session_id not in dynamic_sessions:
+        logger.error(f"Invalid dynamic session ID: {session_id}")
+        return jsonify({"error": "Invalid dynamic session ID"}), 400
+    
+    session_data = dynamic_sessions[session_id]
+    action = data["action"]
+    
+    try:
+        # Take step in dynamic session
+        updated_session = dynamic_manager.step_dynamic_session(session_data, action)
+        dynamic_sessions[session_id] = updated_session
+        
+        # Get updated info
+        pair_info = dynamic_manager.get_next_pair_info(updated_session)
+        progress = dynamic_manager.get_session_progress(updated_session)
+        
+        # Check for temporal incoherence
+        has_incoherence = False
+        if updated_session["current_game"]:
+            has_incoherence = not updated_session["current_game"].pred_timeline.is_valid
+        
+        logger.info(f"Dynamic session {session_id}: Step completed")
+        
+        response_data = {
+            "board": updated_session["current_obs"]["board"] if updated_session["current_game"] else None,
+            "endpoints": updated_session["current_obs"]["endpoints"] if updated_session["current_game"] else None,
+            "entities": updated_session["current_obs"]["entities"] if updated_session["current_game"] else None,
+            "current_pair": pair_info,
+            "progress": progress,
+            "has_incoherence": has_incoherence,
+            "is_complete": dynamic_manager.is_session_complete(updated_session)
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Dynamic session {session_id}: Error during step: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/dynamic_undo", methods=["POST"])
+def dynamic_undo():
+    """Undo last action in dynamic mode annotation."""
+    data = request.json
+    session_id = data.get("session_id", session.get("dynamic_session_id"))
+    
+    if not session_id or session_id not in dynamic_sessions:
+        logger.error(f"Invalid dynamic session ID: {session_id}")
+        return jsonify({"error": "Invalid dynamic session ID"}), 400
+    
+    session_data = dynamic_sessions[session_id]
+    
+    try:
+        updated_session, success = dynamic_manager.undo_dynamic_session(session_data)
+        
+        if not success:
+            logger.warning(f"Dynamic session {session_id}: No actions to undo")
+            return jsonify({"error": "No actions to undo"}), 400
+        
+        dynamic_sessions[session_id] = updated_session
+        
+        # Get updated info
+        pair_info = dynamic_manager.get_next_pair_info(updated_session)
+        progress = dynamic_manager.get_session_progress(updated_session)
+        
+        # Check for temporal incoherence
+        has_incoherence = False
+        if updated_session["current_game"]:
+            has_incoherence = not updated_session["current_game"].pred_timeline.is_valid
+        
+        logger.info(f"Dynamic session {session_id}: Undo successful")
+        
+        response_data = {
+            "board": updated_session["current_obs"]["board"] if updated_session["current_game"] else None,
+            "endpoints": updated_session["current_obs"]["endpoints"] if updated_session["current_game"] else None,
+            "entities": updated_session["current_obs"]["entities"] if updated_session["current_game"] else None,
+            "current_pair": pair_info,
+            "progress": progress,
+            "has_incoherence": has_incoherence,
+            "undo_success": True
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Dynamic session {session_id}: Error during undo: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/dynamic_skip", methods=["POST"])
+def dynamic_skip():
+    """Skip current entity pair in dynamic mode annotation."""
+    data = request.json
+    session_id = data.get("session_id", session.get("dynamic_session_id"))
+    
+    if not session_id or session_id not in dynamic_sessions:
+        logger.error(f"Invalid dynamic session ID: {session_id}")
+        return jsonify({"error": "Invalid dynamic session ID"}), 400
+    
+    session_data = dynamic_sessions[session_id]
+    
+    try:
+        updated_session = dynamic_manager.skip_current_pair(session_data)
+        dynamic_sessions[session_id] = updated_session
+        
+        # Get updated info
+        pair_info = dynamic_manager.get_next_pair_info(updated_session)
+        progress = dynamic_manager.get_session_progress(updated_session)
+        
+        logger.info(f"Dynamic session {session_id}: Pair skipped")
+        
+        response_data = {
+            "board": updated_session["current_obs"]["board"] if updated_session["current_game"] else None,
+            "endpoints": updated_session["current_obs"]["endpoints"] if updated_session["current_game"] else None,
+            "entities": updated_session["current_obs"]["entities"] if updated_session["current_game"] else None,
+            "current_pair": pair_info,
+            "progress": progress,
+            "has_incoherence": False,
+            "is_complete": dynamic_manager.is_session_complete(updated_session)
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Dynamic session {session_id}: Error during skip: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/dynamic_results", methods=["POST"])
+def dynamic_results():
+    """Get results from dynamic mode annotation session."""
+    data = request.json
+    session_id = data.get("session_id", session.get("dynamic_session_id"))
+    
+    if not session_id or session_id not in dynamic_sessions:
+        logger.error(f"Invalid dynamic session ID: {session_id}")
+        return jsonify({"error": "Invalid dynamic session ID"}), 400
+    
+    session_data = dynamic_sessions[session_id]
+    progress = dynamic_manager.get_session_progress(session_data)
+    
+    return jsonify({
+        "text": session_data["text"],
+        "entities": session_data["entities"],
+        "dct": session_data["dct"],
+        "mode": session_data["mode"],
+        "relations": session_data["relations"],
+        "progress": progress,
+        "total_relations": len(session_data["relations"]),
+        "is_complete": dynamic_manager.is_session_complete(session_data)
+    })
 
 
 if __name__ == "__main__":
