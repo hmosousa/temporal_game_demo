@@ -21,6 +21,7 @@ services:
       - FLASK_APP=app.py
       - FLASK_ENV=development
       - SECRET_KEY=${SECRET_KEY:-temporal_game_secret}
+      - TEMPORAL_TAGGER_URL=http://temporal-tagger:8000
     volumes:
       - .:/app
       - /app/.venv
