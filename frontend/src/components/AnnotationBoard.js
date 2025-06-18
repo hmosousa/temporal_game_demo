@@ -331,10 +331,7 @@ const AnnotationBoard = ({
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-yellow-600 font-medium">🎯 Random Mode:</span>
-              <span className="text-sm text-gray-700">
-                Showing highest-scoring pair (score: {currentHighestPair.score.toFixed(3)})
-              </span>
+              <span className="text-yellow-600 font-medium">🎯 Random Mode</span>
             </div>
             <div className="text-sm text-gray-500">
               {boardData?.endpoints?.[currentHighestPair.row]} → {boardData?.endpoints?.[currentHighestPair.col]}

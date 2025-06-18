@@ -22,14 +22,14 @@ export default function Footer() {
           >
             Rules
           </Link>
-          <a
+          {/* <a
             href="https://arxiv.org/abs/2502.14394"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#0091BE] hover:text-[#007aa3] transition-colors font-medium"
           >
             Paper
-          </a>
+          </a> */}
           <a
             href="https://github.com/hmosousa/temporal_game_demo/"
             target="_blank"
