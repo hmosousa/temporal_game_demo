@@ -435,6 +435,12 @@ def annotate_entities():
         return jsonify({"error": f"Failed to annotate entities: {str(e)}"}), 500
 
 
+@app.route("/api/health")
+def health():
+    """Health check endpoint for Docker"""
+    return jsonify({"status": "healthy", "service": "temporal-game-backend"})
+
+
 if __name__ == "__main__":
     logger.info("Starting Temporal Game server")
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

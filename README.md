@@ -23,19 +23,13 @@ poetry install
 
 ```
 
-3. Set up your environment variables. Create a `.env` file in the root directory with:
-```
-HF_USERNAME=your_huggingface_username
-HF_TOKEN=your_huggingface_token
-```
-
-4. Run the Flask application:
+3. Run the Flask application:
 ```
 cd demo
 python app.py
 ```
 
-5. Launch docker with temporal tagger
+4. Launch docker with temporal tagger
 
 ```sh
 docker pull hmosousa/tei2go-en:latest

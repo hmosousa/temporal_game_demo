@@ -1,6 +1,7 @@
 // API utility functions for annotation endpoints
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NODE_ENV === 'production' ? 'http://backend:5000' : 'http://localhost:5000')
 
 export const annotationAPI = {
   async createSession(text, entities, dct) {

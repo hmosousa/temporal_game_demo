@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NODE_ENV === 'production' ? 'http://backend:5000' : 'http://localhost:5000')
+
 export async function POST(request) {
   try {
     const body = await request.json()
     
-    const response = await fetch('http://localhost:5000/api/annotation_undo', {
+    const response = await fetch(`${API_BASE_URL}/api/annotation_undo`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

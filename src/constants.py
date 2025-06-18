@@ -1,12 +1,5 @@
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-HF_USERNAME = os.getenv("HF_USERNAME")
-HF_TOKEN = os.getenv("HF_TOKEN")
 
 ROOT_DIR = Path(__file__).parent.parent
 RESULTS_DIR = ROOT_DIR / "results"
