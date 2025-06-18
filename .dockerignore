@@ -82,3 +82,4 @@ docker-compose*.yml
 
 # Data files (potentially large)
 models/
+certbot/
